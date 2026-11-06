@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi';
 import { Loading, ErrorBox, Empty } from '../components/StateBox';
 import { SlidersIcon, ChevronIcon, CloseIcon } from '../components/Icons';
 import { VerdictBadge, dDayLabel, shortDate } from '../components/PolicyCard';
+import { notifyNotificationsChanged } from '../api/notificationEvents';
 
 // "오늘 08:00" / "어제 18:00" / "10.20 14:00"
 function timeText(iso) {
@@ -76,24 +77,27 @@ function NotificationDetail({ id, onLoaded }) {
         </div>
       ))}
 
-      {d.newPolicies?.length > 0 && (
-        <ul className="new-list">
-          {d.newPolicies.map((p, i) => {
-            const pid = p.policyId ?? p.id ?? p.policy?.id;
-            const title = p.title ?? p.policyTitle ?? p.policy?.title;
-            return (
-              <li key={pid ?? i}>
-                {pid ? <Link to={`/policies/${pid}`}>{title}</Link> : <span>{title}</span>}
+      {/* 새 공고: { total, policies: [{ policyId, title, verdict, verdictLabel }] } — policies 는 앞쪽 최대 20건 */}
+      {d.newPolicies?.policies?.length > 0 && (
+        <>
+          <ul className="new-list">
+            {d.newPolicies.policies.map((p) => (
+              <li key={p.policyId}>
+                <Link to={`/policies/${p.policyId}`}>{p.title}</Link>
                 {p.verdict && <VerdictBadge verdict={p.verdict} label={p.verdictLabel} />}
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+          {d.newPolicies.total > d.newPolicies.policies.length && (
+            <p className="hint">외 {d.newPolicies.total - d.newPolicies.policies.length}건은 맞춤 홈에서 볼 수 있어요.</p>
+          )}
+        </>
       )}
 
+      {/* 마감 임박: { applyEndDate, daysLeft } — daysLeft 0 = 오늘 마감 */}
       {d.deadline && (
         <p className="deadline-line">
-          {dDayLabel(d.deadline.dDay)}
+          {dDayLabel(d.deadline.daysLeft)}
           {d.deadline.applyEndDate && ` · ${shortDate(d.deadline.applyEndDate)} 마감`}
         </p>
       )}
@@ -110,11 +114,13 @@ export default function NotificationsPage() {
     await api(`/api/v1/me/notifications/${id}`, { method: 'DELETE' });
     if (openId === id) setOpenId(null);
     list.reload();
+    notifyNotificationsChanged();
   }
 
   async function readAll() {
     await api('/api/v1/me/notifications/read-all', { method: 'POST' });
     list.reload();
+    notifyNotificationsChanged();
   }
 
   return (
@@ -157,7 +163,7 @@ export default function NotificationsPage() {
             </div>
             <h3>{n.policyTitle ?? n.summary}</h3>
             {n.policyTitle && <p className="muted">{n.summary}</p>}
-            {open && <NotificationDetail id={n.id} onLoaded={() => { if (!n.read) list.reload(); }} />}
+            {open && <NotificationDetail id={n.id} onLoaded={() => { if (!n.read) { list.reload(); notifyNotificationsChanged(); } }} />}
             <div className="row-between card-links">
               {link ? <Link className="link" to={link.to}>{link.text}</Link> : <span />}
               <button className={open ? 'link-muted fold up' : 'link-muted fold'} onClick={() => setOpenId(open ? null : n.id)}>

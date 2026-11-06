@@ -70,9 +70,11 @@ export function CodeInput({ value, onChange }) {
   );
 }
 
-// 개발용: 임시 서버는 메일 대신 응답에 devCode를 준다. 개발 모드(npm run dev)에서만 보인다.
+// 개발용: 메일을 못 보내는 임시 서버(Render 무료)는 메일 대신 응답에 devCode를 준다.
+// 줄지 말지는 서버가 정한다(AUTH_DEV_SHOW_CODE=true 이고 메일 설정이 없을 때만). 빌드한 화면에서도 서버가 주면 보여 준다
+// — 안 그러면 임시 서버에 붙인 배포 화면에서 가입·비밀번호 찾기를 끝낼 수 없다.
 export function DevCodeBox({ code, onUse }) {
-  if (!code || !import.meta.env.DEV) return null;
+  if (!code) return null;
   return (
     <div className="dev-code">
       <span>개발용 인증 코드 <b>{code}</b></span>

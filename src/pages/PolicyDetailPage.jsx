@@ -48,7 +48,8 @@ export default function PolicyDetailPage() {
   const p = policy.data;
   const j = judged.data;
   const dDay = p.applyEndDate ? computeDDay(p.applyEndDate) : null;
-  const firstMissing = j.missingFields?.[0];
+  // missingFields 는 ["annualIncome", ...] 같은 항목 이름이다. 화면 이름은 그 항목을 쓰는 조건의 label("소득")에서 찾는다.
+  const firstMissingLabel = j.conditions.find((c) => c.missingField === j.missingFields?.[0])?.label;
 
   return (
     <>
@@ -102,7 +103,7 @@ export default function PolicyDetailPage() {
         <section className="card card-blue">
           <h2>정보 {j.missingFields.length}개가 비어서 판정할 수 없어요</h2>
           <p>{j.explanation}</p>
-          <Link className="btn-white" to="/profile">{firstMissing?.label ? `${firstMissing.label} 입력하기` : '내 정보 입력하기'}</Link>
+          <Link className="btn-white" to="/profile">{firstMissingLabel ? `${firstMissingLabel} 입력하기` : '내 정보 입력하기'}</Link>
         </section>
       )}
 

@@ -1,5 +1,7 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
+import { NOTIFICATIONS_CHANGED } from '../api/notificationEvents';
 import { HomeIcon, SearchIcon, PrepIcon, BellIcon, UserIcon, Logo } from './Icons';
 
 const TABS = [
@@ -11,8 +13,23 @@ const TABS = [
 ];
 
 export default function Layout() {
-  const { data } = useApi('/api/v1/me/notifications?size=1');
+  const { data, reload } = useApi('/api/v1/me/notifications?size=1');
   const unread = data?.unreadCount ?? 0;
+
+  // 틀(Layout)은 화면을 옮겨도 그대로라 처음 한 번만 불렸다. 화면을 옮길 때와 알림을 읽거나 지웠을 때 다시 받는다.
+  const { pathname } = useLocation();
+  const firstPath = useRef(true);
+  useEffect(() => {
+    if (firstPath.current) {
+      firstPath.current = false; // 처음 열 때는 useApi 가 이미 부른다
+      return;
+    }
+    reload();
+  }, [pathname, reload]);
+  useEffect(() => {
+    window.addEventListener(NOTIFICATIONS_CHANGED, reload);
+    return () => window.removeEventListener(NOTIFICATIONS_CHANGED, reload);
+  }, [reload]);
 
   return (
     <div className="app">
