@@ -378,3 +378,16 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
 @media (hover: hover) { button.upload-box:not(:disabled):hover { background: #eef4ff; border-color: var(--blue); } }
 .notice-line { color: var(--blue); font-weight: 700; }
 .kind-DEADLINE { background: var(--check-bg); color: var(--check); }
+
+/* 여러 장의 공고 캡처 */
+.custom-policy-fields { min-width: 0; border: 0; margin-inline: 0; }
+.capture-selection { margin-top: 12px; }
+.capture-list { list-style: none; margin: 10px 0; padding: 0; display: grid; gap: 8px; }
+.capture-list li { display: flex; align-items: center; gap: 12px; padding: 10px; background: #f7f9fd; border: 1px solid var(--line); border-radius: 10px; }
+.capture-list img { width: 56px; height: 72px; object-fit: contain; background: #fff; border-radius: 6px; flex-shrink: 0; }
+.capture-info { min-width: 0; flex: 1; }
+.capture-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.capture-actions { display: flex; gap: 14px; margin-top: 8px; }
+.capture-actions button { font-size: 12px; min-height: 32px; }
+.capture-actions button:disabled { opacity: .35; cursor: default; }
+.capture-import { width: 100%; min-height: 44px; padding: 12px 16px; }
