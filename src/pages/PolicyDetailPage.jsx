@@ -24,18 +24,29 @@ export default function PolicyDetailPage() {
   const policy = useApi(`/api/v1/policies/${id}`);
   const judged = useApi(`/api/v1/policies/${id}/eligibility`);
   const [saveError, setSaveError] = useState(null);
-  const [liked, setLiked] = useState(false);
+  // 이미 준비함에 담긴 공고인지: 준비함 목록에 같은 policyId가 있으면 처음부터 「담았어요」로 보여 준다
+  const prep = useApi('/api/v1/me/applications');
+  const saved = prep.data?.find((a) => a.policyId === Number(id));
+  const liked = Boolean(saved);
 
   async function addToPrep(status) {
     setSaveError(null);
     try {
+      if (saved) {
+        // 이미 담긴 공고: 다시 담지 않고, 「관심」이면 「준비 중」으로만 바꾼다
+        if (status && saved.status === 'INTERESTED') {
+          await api(`/api/v1/me/applications/${saved.id}`, { method: 'PATCH', body: { status } });
+        }
+        if (status) navigate('/prep');
+        return;
+      }
       // status 없이 보내면 "관심", PREPARING 이면 "준비 중"으로 담긴다
       await api('/api/v1/me/applications', {
         method: 'POST',
         body: status ? { policyId: Number(id), status } : { policyId: Number(id) },
       });
       if (status) navigate('/prep');
-      else setLiked(true); // 관심 담기는 화면에 그대로 머문다
+      else prep.reload(); // 관심 담기는 화면에 그대로 머물고, 목록을 다시 받아 「담았어요」로 바뀐다
     } catch (error) {
       setSaveError(error);
     }
@@ -134,7 +145,9 @@ export default function PolicyDetailPage() {
       </div>
 
       {saveError && <ErrorBox error={saveError} />}
-      <button className="btn-primary" onClick={() => addToPrep('PREPARING')}>신청 준비 시작</button>
+      <button className="btn-primary" onClick={() => addToPrep('PREPARING')}>
+        {saved && saved.status !== 'INTERESTED' ? '준비함에서 보기' : '신청 준비 시작'}
+      </button>
       <p className="notice">준비함에 「준비 중」으로 담기고 서류 체크리스트가 열려요.<br />조건 일치는 선정 확정이 아니에요. 최종 심사는 운영 기관이 해요.</p>
     </>
   );
