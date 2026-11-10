@@ -23,6 +23,8 @@ export default function SignupPage() {
       const res = await api('/api/v1/auth/signup', { method: 'POST', body: { email, password, nickname } });
       navigate('/verify-email', { state: { email, devCode: res?.devCode } });
     } catch (err) {
+      // 오류 번호는 사용자에게 보이지 않게, 개발할 때만 F12 콘솔에 남긴다
+      if (import.meta.env.DEV) console.warn('회원가입 실패', err.status, err.code, err.errors);
       setError(err); // 409 EMAIL_TAKEN이면 "이미 가입된 이메일이에요" 문구가 그대로 나온다
     } finally {
       setSending(false);
@@ -53,10 +55,7 @@ export default function SignupPage() {
         <p className="hint">맞춤 홈에서 「{form.nickname || '홍길동'}님」처럼 불러 드려요. 2~10자</p>
       </section>
       {error && (
-        <p className="error-box" role="alert">
-          {error.message}
-          {error.status ? ` (오류 번호 ${error.status}${error.code ? ` · ${error.code}` : ''})` : ''}
-        </p>
+        <p className="error-box" role="alert">{error.message}</p>
       )}
       <button className="btn-primary" disabled={sending || !longEnough || !mixed || !same}>
         {sending ? '보내는 중… (처음엔 1분쯤 걸릴 수 있어요)' : '가입하고 인증 코드 받기'}
