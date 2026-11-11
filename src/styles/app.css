@@ -413,3 +413,10 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
   .welcome-hero .hero-illust { width: 64px; height: 64px; right: 0; top: 74px; }
   .welcome-features li { gap: 10px; }
 }
+
+/* 분야를 정하지 않은 맞춤 검색의 내 정보 요약 */
+.search-profile-summary { display: flex; align-items: center; gap: 7px; padding: 10px 12px; margin: 0 0 12px; background: #fff; border-radius: 12px; color: var(--muted); font-size: 12px; }
+.search-profile-summary > svg { color: var(--blue); flex-shrink: 0; }
+.search-profile-summary > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.search-profile-summary > .link { flex-shrink: 0; font-size: 12px; }
+.search-scope-note { margin: 8px 0 16px; }

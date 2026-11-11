@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { Loading, ErrorBox } from '../components/StateBox';
 import PolicyCard from '../components/PolicyCard';
+import SearchProfileSummary from '../components/SearchProfileSummary';
 import { SearchIcon, ClockIcon, CloseIcon } from '../components/Icons';
 
 function readRecent() {
@@ -57,6 +58,8 @@ export default function SearchPage() {
     }
   }
 
+  const chips = result ? toChips(result.understood) : [];
+  const personalized = result && result.understood.keywords.length === 0 && result.understood.audience.length === 0;
   const needsCheck = result?.content.filter((item) => item.verdict === 'NEEDS_CHECK').length ?? 0;
 
   return (
@@ -75,17 +78,20 @@ export default function SearchPage() {
 
       {result && !loading && (
         <>
+          {personalized && <SearchProfileSummary />}
           <div className="row-between">
             <p className="label">이 조건으로 찾았어요</p>
-            <span className="hint">필요 없는 조건은 ×로 빼세요</span>
+            {chips.length > 0 && <span className="hint">필요 없는 조건은 ×로 빼세요</span>}
           </div>
-          <div className="chips">
-            {toChips(result.understood).map((chip) => (
-              <button key={chip.text} className="chip chip-soft" onClick={() => search(query, [...removed, chip.off])}>
-                {chip.text} <CloseIcon size={12} />
-              </button>
-            ))}
-          </div>
+          {chips.length > 0 ? (
+            <div className="chips">
+              {chips.map((chip) => (
+                <button key={chip.text} className="chip chip-soft" onClick={() => search(query, [...removed, chip.off])}>
+                  {chip.text} <CloseIcon size={12} />
+                </button>
+              ))}
+            </div>
+          ) : <p className="hint search-scope-note">구체적인 검색 조건 없이 전체 공고의 신청 조건을 비교했어요.</p>}
 
           {result.content.length === 0 ? (
             <>
