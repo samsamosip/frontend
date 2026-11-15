@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useApi } from '../hooks/useApi';
+import { useSearchScroll } from '../hooks/useSearchScroll';
 import { Loading, ErrorBox } from '../components/StateBox';
 import PolicyCard from '../components/PolicyCard';
 import SearchProfileSummary from '../components/SearchProfileSummary';
@@ -26,10 +27,19 @@ function pickSearchExample() {
 
 function readRecent() {
   try {
-    return JSON.parse(localStorage.getItem('recentSearches')) ?? [];
+    const stored = JSON.parse(localStorage.getItem('recentSearches'));
+    return Array.isArray(stored) ? stored.filter((query) => typeof query === 'string') : [];
   } catch {
     return [];
   }
+}
+
+const REMOVABLE_PARAMS = new Set(['noRegion', 'noCategory', 'noAge', 'noClosingSoon', 'drop']);
+
+function searchParamsFor(query, removed) {
+  const params = new URLSearchParams({ q: query });
+  removed.forEach(([name, value]) => params.append(name, value));
+  return params;
 }
 
 // 서버가 준 understood 를 화면 칩 목록으로 바꾼다. off 는 ×를 눌렀을 때 붙일 조건이다.
@@ -44,41 +54,43 @@ function toChips(u) {
 }
 
 export default function SearchPage() {
+  const location = useLocation();
+  return <SearchResults key={location.key} />;
+}
+
+function SearchResults() {
   const navigate = useNavigate();
-  const [text, setText] = useState('');
-  const [query, setQuery] = useState('');
-  const [removed, setRemoved] = useState([]);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [recent, setRecent] = useState(readRecent);
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q')?.trim() ?? '';
+  const removed = [...searchParams].filter(([name]) => REMOVABLE_PARAMS.has(name));
+  const params = searchParamsFor(query, removed);
+  const { data: result, loading, error, reload } = useApi(query ? `/api/v1/search?${params}` : null);
+  const [text, setText] = useState(query);
+  const [previousSearches] = useState(readRecent);
   const [example] = useState(pickSearchExample);
+  const recent = result ? [query, ...previousSearches.filter((r) => r !== query)].slice(0, 5) : previousSearches;
+
+  useSearchScroll(location.key, !query || Boolean(result));
 
   useEffect(() => {
+    if (text.trim()) return;
     try { sessionStorage.setItem('lastSearchExample', example); } catch { /* 저장 못 해도 괜찮다 */ }
-  }, [example]);
+  }, [example, text]);
 
-  function saveRecent(next) {
-    setRecent(next);
+  useEffect(() => {
+    if (!result) return;
+    // 완료된 현재 요청만 기록하며, 요청을 시작할 때의 오래된 목록으로 덮어쓰지 않는다.
+    const next = [query, ...readRecent().filter((r) => r !== query)].slice(0, 5);
     try { localStorage.setItem('recentSearches', JSON.stringify(next)); } catch { /* 저장 못 해도 괜찮다 */ }
-  }
+  }, [query, result]);
 
-  async function search(q, nextRemoved = []) {
-    if (!q.trim()) return;
-    setLoading(true);
-    setError(null);
-    setQuery(q);
-    setRemoved(nextRemoved);
-    try {
-      const params = new URLSearchParams({ q });
-      nextRemoved.forEach(([name, value]) => params.append(name, value));
-      setResult(await api(`/api/v1/search?${params}`));
-      saveRecent([q, ...recent.filter((r) => r !== q)].slice(0, 5));
-    } catch (err) {
-      setError(err); // 429 RATE_LIMITED면 "검색이 너무 잦아요" 문구가 그대로 나온다
-    } finally {
-      setLoading(false);
-    }
+  function search(q, nextRemoved = []) {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    const next = searchParamsFor(trimmed, nextRemoved);
+    if (next.toString() === params.toString()) reload();
+    else setSearchParams(next);
   }
 
   const chips = result ? toChips(result.understood) : [];
@@ -97,7 +109,7 @@ export default function SearchPage() {
       </section>
 
       {loading && <Loading />}
-      {error && <ErrorBox error={error} />}
+      {error && <ErrorBox error={error} onRetry={reload} />}
 
       {result && !loading && (
         <>
@@ -153,7 +165,7 @@ export default function SearchPage() {
           <h2>최근 검색</h2>
           <section className="card recent-card">
             {recent.map((r) => (
-              <button key={r} className="list-row recent-row" onClick={() => { setText(r); search(r); }}>
+              <button key={r} className="list-row recent-row" onClick={() => search(r)}>
                 <span className="row-inline"><ClockIcon size={16} />{r}</span>
               </button>
             ))}

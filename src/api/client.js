@@ -48,20 +48,32 @@ async function readBody(response) {
   }
 }
 
+async function request(path, options) {
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, options);
+    return { response, data: await readBody(response) };
+  } catch (error) {
+    if (error.name === 'AbortError') throw error;
+    throw new ApiError(0, {
+      code: 'NETWORK_ERROR',
+      message: '인터넷 연결을 확인한 뒤 다시 시도해 주세요.',
+    });
+  }
+}
+
 // ── 3. 토큰 갱신: 동시에 여러 요청이 와도 딱 한 번만 ──
 let refreshing = null;
 
 function refreshTokens() {
   if (!refreshing) {
-    refreshing = fetch(`${BASE_URL}/api/v1/auth/refresh`, {
+    refreshing = request('/api/v1/auth/refresh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: localStorage.getItem('refreshToken') }),
     })
-      .then(async (response) => {
-        const body = await readBody(response);
-        if (!response.ok) throw new ApiError(response.status, body);
-        saveLogin(body);
+      .then(({ response, data }) => {
+        if (!response.ok) throw new ApiError(response.status, data);
+        saveLogin(data);
       })
       .finally(() => {
         refreshing = null;
@@ -71,7 +83,7 @@ function refreshTokens() {
 }
 
 // ── 4. 모든 화면이 쓰는 함수 ─────────────────────
-export async function api(path, { method = 'GET', body } = {}, isRetry = false) {
+export async function api(path, { method = 'GET', body, signal } = {}, isRetry = false) {
   const headers = {};
   // 파일을 올릴 때(FormData)는 브라우저가 Content-Type을 알아서 정한다
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
@@ -81,13 +93,13 @@ export async function api(path, { method = 'GET', body } = {}, isRetry = false) 
   if (token) headers.Authorization = `Bearer ${token}`;
   else headers['X-Anonymous-Id'] = getAnonymousId();
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const { response, data } = await request(path, {
     method,
     headers,
     body: body === undefined || isForm ? body : JSON.stringify(body),
+    signal,
   });
 
-  const data = await readBody(response);
   if (response.ok) return data;
 
   const error = new ApiError(response.status, data);
@@ -96,12 +108,14 @@ export async function api(path, { method = 'GET', body } = {}, isRetry = false) 
     if (error.code === 'TOKEN_EXPIRED') {
       try {
         await refreshTokens();
-      } catch {
+      } catch (refreshError) {
+        // 연결 실패는 토큰 만료 여부를 알 수 없으므로 로그인 상태를 유지한다.
+        if (refreshError.status === 0 || refreshError.status >= 500) throw refreshError;
         clearLogin();
         window.location.assign('/login');
         throw error;
       }
-      return api(path, { method, body }, true);
+      return api(path, { method, body, signal }, true);
     }
     if (error.code === 'TOKEN_INVALID') {
       clearLogin();

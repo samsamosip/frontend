@@ -42,3 +42,10 @@ backend와 policy-harvester의 다중 캡처 지원을 먼저 배포해야 한�
 지역은 아래 `내 지역 · 경기` 검색 칩에서만 표시해 중복을 피한다.
 정보가 없으면 입력 안내를 보여 주고, 일반 키워드 검색에서는 기존 검색 조건 칩을 유지한다.
 저장한 프로필은 서버에서 신청 조건을 판정할 때 사용하며, AI·임베딩 API에 전송하지 않는다.
+
+### UI 회귀 검증
+
+`npm ci` 후 `npx playwright install --with-deps chromium webkit`으로 브라우저를 준비하고
+`npm run test:e2e`를 실행한다. 프로덕션 빌드를 띄워 검색 기록 복원, 응답 순서 역전,
+필터 로딩, 통신 오류 복구를 Chromium과 WebKit에서 검사한다.
+API 요청은 테스트 응답으로 대체한다.
