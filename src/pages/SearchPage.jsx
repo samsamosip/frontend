@@ -36,9 +36,11 @@ function readRecent() {
 
 const REMOVABLE_PARAMS = new Set(['noRegion', 'noCategory', 'noAge', 'noClosingSoon', 'drop']);
 
-function searchParamsFor(query, removed) {
+function searchParamsFor(query, removed, includeNoMatch = false, page = 0) {
   const params = new URLSearchParams({ q: query });
   removed.forEach(([name, value]) => params.append(name, value));
+  if (includeNoMatch) params.set('includeNoMatch', 'true');
+  if (page > 0) params.set('page', String(page));
   return params;
 }
 
@@ -64,7 +66,9 @@ function SearchResults() {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q')?.trim() ?? '';
   const removed = [...searchParams].filter(([name]) => REMOVABLE_PARAMS.has(name));
-  const params = searchParamsFor(query, removed);
+  const includeNoMatch = searchParams.get('includeNoMatch') === 'true';
+  const page = Math.max(0, Number.parseInt(searchParams.get('page'), 10) || 0);
+  const params = searchParamsFor(query, removed, includeNoMatch, page);
   const { data: result, loading, error, reload } = useApi(query ? `/api/v1/search?${params}` : null);
   const [text, setText] = useState(query);
   const [previousSearches] = useState(readRecent);
@@ -85,10 +89,10 @@ function SearchResults() {
     try { localStorage.setItem('recentSearches', JSON.stringify(next)); } catch { /* 저장 못 해도 괜찮다 */ }
   }, [query, result]);
 
-  function search(q, nextRemoved = []) {
+  function search(q, nextRemoved = [], nextIncludeNoMatch = includeNoMatch, nextPage = 0) {
     const trimmed = q.trim();
     if (!trimmed) return;
-    const next = searchParamsFor(trimmed, nextRemoved);
+    const next = searchParamsFor(trimmed, nextRemoved, nextIncludeNoMatch, nextPage);
     if (next.toString() === params.toString()) reload();
     else setSearchParams(next);
   }
@@ -96,6 +100,8 @@ function SearchResults() {
   const chips = result ? toChips(result.understood) : [];
   const personalized = result && result.understood.keywords.length === 0 && result.understood.audience.length === 0;
   const needsCheck = result?.content.filter((item) => item.verdict === 'NEEDS_CHECK').length ?? 0;
+  const noMatch = result?.counts?.noMatch ?? 0;
+  const onlyNoMatch = result?.content.length === 0 && noMatch > 0;
 
   return (
     <>
@@ -128,19 +134,32 @@ function SearchResults() {
             </div>
           ) : <p className="hint search-scope-note">구체적인 검색 조건 없이 전체 공고의 신청 조건을 비교했어요.</p>}
 
+          {includeNoMatch && noMatch > 0 && (
+            <section className="guide-box">
+              <p>내 조건과 다른 공고도 함께 보고 있어요. 신청 조건은 공고 상세에서 확인해 주세요.</p>
+              <button className="link" onClick={() => search(query, removed, false)}>내 조건에 맞는 공고만 보기</button>
+            </section>
+          )}
+
           {result.content.length === 0 ? (
             <>
               <section className="card empty-card">
                 <SearchIcon size={26} />
-                <strong>맞는 공고를 찾지 못했어요</strong>
-                <p className="muted">{result.message ?? '조건을 하나 빼고 다시 찾아보거나, 알고 있는 공고를 직접 등록해 주세요.'}</p>
+                <strong>{onlyNoMatch ? '내 조건에 맞는 공고는 없어요' : '맞는 공고를 찾지 못했어요'}</strong>
+                {onlyNoMatch ? (
+                  <>
+                    <p className="muted">관련 공고 {noMatch}개가 있지만, 저장한 내 정보와 신청 조건이 달라요.</p>
+                    <button className="btn-primary" onClick={() => search(query, removed, true)}>내 조건과 다른 공고 {noMatch}개도 보기</button>
+                    <Link className="link" to="/profile">내 정보 확인·수정</Link>
+                  </>
+                ) : <p className="muted">{result.message ?? '조건을 하나 빼고 다시 찾아보거나, 알고 있는 공고를 직접 등록해 주세요.'}</p>}
               </section>
-              <section className="card card-blue">
+              {!onlyNoMatch && <section className="card card-blue">
                 <h2>찾는 공고가 따로 있나요?</h2>
                 <p>공고 링크나 캡처를 올리면 준비함에 담아 마감을 챙겨 드려요.</p>
                 <Link className="btn-white" to="/custom-policies/new">공고 직접 등록하기</Link>
-              </section>
-              <p className="notice">등록한 공고는 나만 볼 수 있어요.</p>
+              </section>}
+              {!onlyNoMatch && <p className="notice">등록한 공고는 나만 볼 수 있어요.</p>}
             </>
           ) : (
             <>
@@ -151,6 +170,15 @@ function SearchResults() {
                 </section>
               )}
               {result.content.map((item) => <PolicyCard key={item.policy.id} item={item} />)}
+              {result.totalPages > 1 && (
+                <div className="row-two">
+                  <button className="btn-secondary" disabled={page === 0} onClick={() => search(query, removed, includeNoMatch, page - 1)}>이전</button>
+                  <button className="btn-secondary" disabled={page + 1 >= result.totalPages} onClick={() => search(query, removed, includeNoMatch, page + 1)}>다음</button>
+                </div>
+              )}
+              {!includeNoMatch && noMatch > 0 && (
+                <button className="btn-secondary btn-card" onClick={() => search(query, removed, true)}>내 조건과 다른 공고 {noMatch}개도 보기</button>
+              )}
               <div className="row-between under-save">
                 <span className="hint">찾는 공고가 따로 있나요?</span>
                 <Link className="link" to="/custom-policies/new">직접 등록하기 →</Link>
