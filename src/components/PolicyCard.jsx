@@ -45,10 +45,10 @@ const SOURCE_TEXT = {
 };
 
 // item = /me/matches 또는 /search 의 content 한 칸
-export default function PolicyCard({ item }) {
+export default function PolicyCard({ item, returnTo }) {
   const { policy, verdict, verdictLabel, summary, dDay } = item;
   return (
-    <Link to={`/policies/${policy.id}`} className="card card-link">
+    <Link to={`/policies/${policy.id}`} state={returnTo ? { returnTo } : null} className="card card-link">
       <div className="row-between">
         <VerdictBadge verdict={verdict} label={verdictLabel} />
         <span className={dDay !== null && dDay <= 3 ? 'deadline urgent' : 'deadline'}>{deadlineText(dDay, policy.applyEndDate)}</span>

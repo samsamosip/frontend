@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { UserIcon } from './Icons';
 
-export default function SearchProfileSummary() {
+export default function SearchProfileSummary({ profileLink = '/profile' }) {
   const profile = useApi('/api/v1/me/profile');
   const summary = profile.data?.age != null ? `만 ${profile.data.age}세` : '';
   const missing = profile.error?.status === 404;
@@ -15,7 +15,7 @@ export default function SearchProfileSummary() {
           : profile.data ? `내 정보 기준${summary ? `: ${summary}` : ''}`
             : missing ? '내 정보를 입력하면 더 정확히 비교할 수 있어요.' : '저장한 정보는 내 정보에서 확인해 주세요.'}
       </span>
-      <Link className="link" to="/profile">{missing ? '입력하기' : '확인·수정'}</Link>
+      <Link className="link" to={profileLink}>{missing ? '입력하기' : '확인·수정'}</Link>
     </aside>
   );
 }

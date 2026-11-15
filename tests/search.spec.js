@@ -145,6 +145,7 @@ test('빈 입력·공백 입력은 표시된 예시로 검색하고 새 방문�
   });
   await page.goto('/search');
   const input = page.getByRole('textbox', { name: '검색어' });
+  await expect(input).toHaveAttribute('placeholder', new RegExp(`${MONTHLY_QUERY.replace(/[?]/g, '\\?')}|${CERTIFICATE_QUERY.replace(/[?]/g, '\\?')}`));
   const first = await input.getAttribute('placeholder');
   await page.getByRole('button', { name: '검색', exact: true }).click();
   await expect.poll(() => queries.length).toBe(1);
@@ -152,6 +153,7 @@ test('빈 입력·공백 입력은 표시된 예시로 검색하고 새 방문�
   await expect(input).toHaveValue(first);
   await expect(page.locator('.card-link').first()).toBeVisible();
   await page.goto('/search');
+  await expect(input).not.toHaveAttribute('placeholder', '내 조건에 맞는 혜택 찾아줘');
   const second = await input.getAttribute('placeholder');
   expect(second).not.toBe(first);
   await input.fill('   ');

@@ -33,6 +33,8 @@ test('모든 공고가 조건과 다르면 안내·보기 버튼을 제공하고
   await page.goto(`/search?${new URLSearchParams({ q: query, noRegion: 'true' })}`);
   await expect(page.getByText('내 조건에 맞는 공고는 없어요', { exact: true })).toBeVisible();
   await expect(page.getByText('관련 공고 21개가 있지만, 저장한 내 정보와 신청 조건이 달라요.')).toBeVisible();
+  await expect(page.getByRole('region', { name: '검색 결과 요약' })).toContainText('관련 공고 21개');
+  await expect(page.locator('.search-result-counts strong')).toHaveText(['0', '0', '21']);
   await expect(page.locator('body')).not.toContainText('includeNoMatch');
   await expect(page.getByRole('link', { name: '내 정보 확인·수정' })).toBeVisible();
   await expect(page.getByText('찾는 공고가 따로 있나요?', { exact: true })).toHaveCount(0);
@@ -49,6 +51,7 @@ test('모든 공고가 조건과 다르면 안내·보기 버튼을 제공하고
   await expect(page).toHaveURL(/page=1/);
   await expect(page.locator('.card-link')).toHaveCount(1);
   await expect(page.getByRole('heading', { name: '면접 정장 지원 공고 21', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: '검색 결과 요약' })).toContainText('관련 공고 21개');
   await page.goBack();
   await expect(page.locator('.card-link')).toHaveCount(20);
   await page.reload();

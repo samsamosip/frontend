@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useApi } from '../hooks/useApi';
 import { Loading, ErrorBox } from '../components/StateBox';
 import { VerdictBadge, computeDDay, deadlineText } from '../components/PolicyCard';
 import { StarIcon, ClockIcon, BuildingIcon } from '../components/Icons';
+import { searchReturnPath } from '../utils/searchReturnPath';
 
 const TRUTH = {
   TRUE: { text: '✓ 맞음', className: 'badge-match' },
@@ -21,6 +22,9 @@ function fullDate(date) {
 export default function PolicyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = searchReturnPath(location.state?.returnTo);
+  const profileLink = returnTo ? `/profile?${new URLSearchParams({ returnTo })}` : '/profile';
   const policy = useApi(`/api/v1/policies/${id}`);
   const judged = useApi(`/api/v1/policies/${id}/eligibility`);
   const [saveError, setSaveError] = useState(null);
@@ -114,7 +118,7 @@ export default function PolicyDetailPage() {
         <section className="card card-blue">
           <h2>정보 {j.missingFields.length}개가 비어서 판정할 수 없어요</h2>
           <p>{j.explanation}</p>
-          <Link className="btn-white" to="/profile">{firstMissingLabel ? `${firstMissingLabel} 입력하기` : '내 정보 입력하기'}</Link>
+          <Link className="btn-white" to={profileLink}>{firstMissingLabel ? `${firstMissingLabel} 입력하기` : '내 정보 입력하기'}</Link>
         </section>
       )}
 

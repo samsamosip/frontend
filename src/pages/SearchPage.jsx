@@ -5,24 +5,24 @@ import { useSearchScroll } from '../hooks/useSearchScroll';
 import { Loading, ErrorBox } from '../components/StateBox';
 import PolicyCard from '../components/PolicyCard';
 import SearchProfileSummary from '../components/SearchProfileSummary';
+import SearchResultSummary from '../components/SearchResultSummary';
 import { SearchIcon, ClockIcon, CloseIcon } from '../components/Icons';
 
-// 등록된 공고로 검색 결과를 확인한 예시다. 화면을 다시 열면 직전과 다른 예시를 고른다.
-const SEARCH_EXAMPLES = [
-  '월세 지원받을 수 있는 거 있어?',
-  '자격증 응시료 지원받을 수 있어?',
-  '면접 정장 빌릴 수 있는 지원 있어?',
-  '대학생 등록금 지원받을 수 있어?',
-  '주택 보증금 대출이자 지원 있어?',
-  '청년 이사비 지원받을 수 있어?',
-  '청년 창업 지원받을 수 있어?',
-];
+const DEFAULT_EXAMPLE = '내 조건에 맞는 혜택 찾아줘';
 
-function pickSearchExample() {
+function exampleSelection() {
   let previous;
   try { previous = sessionStorage.getItem('lastSearchExample'); } catch { /* 저장소 없이도 검색할 수 있다 */ }
-  const choices = SEARCH_EXAMPLES.filter((example) => example !== previous);
-  return choices[Math.floor(Math.random() * choices.length)];
+  return { previous, random: Math.random() };
+}
+
+function pickSearchExample(suggestions, selection) {
+  const available = Array.isArray(suggestions) ? suggestions.filter((item) => typeof item.text === 'string' && item.match + item.needsCheck > 0) : [];
+  const different = available.filter((item) => item.text !== selection.previous);
+  const pool = different.length ? different : available;
+  const matched = pool.filter((item) => item.match > 0);
+  const choices = matched.length ? matched : pool;
+  return choices[Math.floor(selection.random * choices.length)]?.text ?? DEFAULT_EXAMPLE;
 }
 
 function readRecent() {
@@ -57,10 +57,11 @@ function toChips(u) {
 
 export default function SearchPage() {
   const location = useLocation();
-  return <SearchResults key={location.key} />;
+  const { data: examples } = useApi('/api/v1/search/examples');
+  return <SearchResults key={location.key} examples={examples} />;
 }
 
-function SearchResults() {
+function SearchResults({ examples }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,10 +70,14 @@ function SearchResults() {
   const includeNoMatch = searchParams.get('includeNoMatch') === 'true';
   const page = Math.max(0, Number.parseInt(searchParams.get('page'), 10) || 0);
   const params = searchParamsFor(query, removed, includeNoMatch, page);
+  const profileParams = searchParamsFor(query, removed, includeNoMatch);
+  const returnTo = `/search?${profileParams}`;
+  const profileLink = `/profile?${new URLSearchParams({ returnTo })}`;
   const { data: result, loading, error, reload } = useApi(query ? `/api/v1/search?${params}` : null);
   const [text, setText] = useState(query);
   const [previousSearches] = useState(readRecent);
-  const [example] = useState(pickSearchExample);
+  const [selection] = useState(exampleSelection);
+  const example = pickSearchExample(examples, selection);
   const recent = result ? [query, ...previousSearches.filter((r) => r !== query)].slice(0, 5) : previousSearches;
 
   useSearchScroll(location.key, !query || Boolean(result));
@@ -119,7 +124,8 @@ function SearchResults() {
 
       {result && !loading && (
         <>
-          {personalized && <SearchProfileSummary />}
+          <SearchResultSummary counts={result.counts} profileLink={personalized ? undefined : profileLink} />
+          {personalized && <SearchProfileSummary profileLink={profileLink} />}
           <div className="row-between">
             <p className="label">이 조건으로 찾았어요</p>
             {chips.length > 0 && <span className="hint">필요 없는 조건은 ×로 빼세요</span>}
@@ -150,7 +156,6 @@ function SearchResults() {
                   <>
                     <p className="muted">관련 공고 {noMatch}개가 있지만, 저장한 내 정보와 신청 조건이 달라요.</p>
                     <button className="btn-primary" onClick={() => search(query, removed, true)}>내 조건과 다른 공고 {noMatch}개도 보기</button>
-                    <Link className="link" to="/profile">내 정보 확인·수정</Link>
                   </>
                 ) : <p className="muted">{result.message ?? '조건을 하나 빼고 다시 찾아보거나, 알고 있는 공고를 직접 등록해 주세요.'}</p>}
               </section>
@@ -169,7 +174,7 @@ function SearchResults() {
                   {result.notice && <p>{result.notice}</p>}
                 </section>
               )}
-              {result.content.map((item) => <PolicyCard key={item.policy.id} item={item} />)}
+              {result.content.map((item) => <PolicyCard key={item.policy.id} item={item} returnTo={returnTo} />)}
               {result.totalPages > 1 && (
                 <div className="row-two">
                   <button className="btn-secondary" disabled={page === 0} onClick={() => search(query, removed, includeNoMatch, page - 1)}>이전</button>

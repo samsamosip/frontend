@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, ApiError, clearLogin, isLoggedIn } from '../api/client';
 import { useApi } from '../hooks/useApi';
 import { Loading, ErrorBox } from '../components/StateBox';
+import { searchReturnPath } from '../utils/searchReturnPath';
 
 const EMPTY_FORM = {
   birthDate: '', sido: '', zipCd: '', jobCd: '', schoolCd: '', mrgSttsCd: '',
@@ -13,6 +14,8 @@ const EMPTY_FORM = {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const returnTo = searchReturnPath(params.get('returnTo'));
   const codes = useApi('/api/v1/codes');
   const regions = useApi('/api/v1/regions');
   const [form, setForm] = useState(EMPTY_FORM);
@@ -72,7 +75,7 @@ export default function ProfilePage() {
           kosafIncomeBracket: form.isStudent && form.kosafIncomeBracket !== '' ? Number(form.kosafIncomeBracket) : null,
         },
       });
-      navigate('/');
+      navigate(returnTo ?? '/', { replace: Boolean(returnTo) });
     } catch (error) {
       setSaveError(error);
     }
@@ -93,8 +96,8 @@ export default function ProfilePage() {
   }
 
   function skip() {
-    localStorage.setItem('skipOnboarding', 'yes');
-    navigate('/');
+    if (!returnTo) localStorage.setItem('skipOnboarding', 'yes');
+    navigate(returnTo ?? '/', { replace: Boolean(returnTo) });
   }
 
   if (codes.loading || regions.loading) return <Loading />;
@@ -111,7 +114,7 @@ export default function ProfilePage() {
       <section className="hero">
         <div className="row-between">
           <p>내 정보</p>
-          <button type="button" className="link-white" onClick={skip}>나중에 입력</button>
+          <button type="button" className="link-white" onClick={skip}>{returnTo ? '검색으로 돌아가기' : '나중에 입력'}</button>
         </div>
         <h1>맞춤 공고를 찾기 위해<br />조건을 알려주세요</h1>
         <p className="hero-sub">모르는 항목은 [모름]을 누르고 넘어가도 돼요. 나중에 하나씩 수정할 수 있어요.</p>
@@ -277,7 +280,7 @@ export default function ProfilePage() {
       </section>
 
       {saveError && <ErrorBox error={saveError} />}
-      <button className="btn-primary" type="submit">저장하고 맞춤 공고 보기</button>
+      <button className="btn-primary" type="submit">{returnTo ? '저장하고 검색 결과 다시 보기' : '저장하고 맞춤 공고 보기'}</button>
       <div className="row-between under-save">
         <span className="hint">{updatedAt ? `마지막 수정 ${updatedAt.slice(0, 10).replaceAll('-', '.')}` : ''}</span>
         <button type="button" className="link-muted" onClick={deleteData}>내 데이터 전체 삭제</button>

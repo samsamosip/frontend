@@ -429,3 +429,9 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
 .search-profile-summary > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .search-profile-summary > .link { flex-shrink: 0; font-size: 12px; }
 .search-scope-note { margin: 8px 0 16px; }
+.search-result-summary > .row-between { flex-wrap: wrap; margin-bottom: 12px; }
+.search-result-summary h2 { margin: 0; font-size: 18px; }
+.search-result-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center; }
+.search-result-counts > div { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); }
+.search-result-counts > div + div { border-left: 1px solid var(--line); }
+.search-result-counts strong { font-size: 23px; line-height: 1.3; }

@@ -41,6 +41,7 @@ export function searchResult(query, params = new URLSearchParams()) {
     },
     content,
     totalElements: content.length,
+    counts: { match: 0, needsCheck: content.length, noMatch: 0 },
   };
 }
 
@@ -61,13 +62,15 @@ export async function mockApi(page, override = () => false) {
     let json;
     let status = 200;
     if (url.pathname === '/api/v1/search') json = searchResult(url.searchParams.get('q'), url.searchParams);
+    else if (url.pathname === '/api/v1/search/examples') json = [{ text: MONTHLY_QUERY, match: 1, needsCheck: 0 }, { text: CERTIFICATE_QUERY, match: 1, needsCheck: 0 }];
     else if (url.pathname === '/api/v1/me/matches') json = matchResult(url.searchParams.get('category'));
     else if (url.pathname === '/api/v1/me/notifications') json = { items: [], unreadCount: 0 };
     else if (url.pathname === '/api/v1/me/applications') json = [];
     else if (url.pathname === '/api/v1/me/profile') { status = 404; json = { message: '저장한 정보가 없어요.' }; }
     else if (url.pathname === '/api/v1/me/suggestions') json = { items: [] };
     else if (url.pathname === '/api/v1/me/account') json = { email: 'audit@example.com', nickname: '점검', hasPassword: true };
-    else if (url.pathname === '/api/v1/codes') json = {};
+    else if (url.pathname === '/api/v1/codes') json = { jobCd: [{ code: '0013001', label: '재직자' }, { code: '0013002', label: '미취업자' }], schoolCd: [], mrgSttsCd: [], sbizCd: [], housingType: [], interestCategories: [], enrollmentStatus: [], gpaScale: [], kosafIncomeBracket: [] };
+    else if (url.pathname === '/api/v1/regions') json = [];
     else if (/\/policies\/\d+\/eligibility$/.test(url.pathname)) json = { verdict: 'NEEDS_CHECK', verdictLabel: '확인 필요', conditions: [], missingFields: [] };
     else if (/\/policies\/\d+$/.test(url.pathname)) json = policies.find((policy) => policy.id === Number(url.pathname.split('/').at(-1)));
     else if (['/api/v1/auth/password/forgot', '/api/v1/auth/signup', '/api/v1/auth/email/resend'].includes(url.pathname)) json = { expiresInSeconds: 600 };
