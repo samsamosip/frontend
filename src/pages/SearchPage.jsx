@@ -1,10 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { Loading, ErrorBox } from '../components/StateBox';
 import PolicyCard from '../components/PolicyCard';
 import SearchProfileSummary from '../components/SearchProfileSummary';
 import { SearchIcon, ClockIcon, CloseIcon } from '../components/Icons';
+
+// 등록된 공고로 검색 결과를 확인한 예시다. 화면을 다시 열면 직전과 다른 예시를 고른다.
+const SEARCH_EXAMPLES = [
+  '월세 지원받을 수 있는 거 있어?',
+  '자격증 응시료 지원받을 수 있어?',
+  '면접 정장 빌릴 수 있는 지원 있어?',
+  '대학생 등록금 지원받을 수 있어?',
+  '주택 보증금 대출이자 지원 있어?',
+  '청년 이사비 지원받을 수 있어?',
+  '청년 창업 지원받을 수 있어?',
+];
+
+function pickSearchExample() {
+  let previous;
+  try { previous = sessionStorage.getItem('lastSearchExample'); } catch { /* 저장소 없이도 검색할 수 있다 */ }
+  const choices = SEARCH_EXAMPLES.filter((example) => example !== previous);
+  return choices[Math.floor(Math.random() * choices.length)];
+}
 
 function readRecent() {
   try {
@@ -34,6 +52,11 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [recent, setRecent] = useState(readRecent);
+  const [example] = useState(pickSearchExample);
+
+  useEffect(() => {
+    try { sessionStorage.setItem('lastSearchExample', example); } catch { /* 저장 못 해도 괜찮다 */ }
+  }, [example]);
 
   function saveRecent(next) {
     setRecent(next);
@@ -66,9 +89,9 @@ export default function SearchPage() {
     <>
       <section className="hero">
         <button className="link-white back" onClick={() => navigate('/')}>← 홈</button>
-        <form onSubmit={(e) => { e.preventDefault(); search(text); }} className="search-box">
+        <form onSubmit={(e) => { e.preventDefault(); search(text.trim() || example); }} className="search-box">
           <SearchIcon size={20} />
-          <input aria-label="검색어" value={text} onChange={(e) => setText(e.target.value)} placeholder="월세 지원받을 수 있는 거 있어?" />
+          <input aria-label="검색어" enterKeyHint="search" value={text} onChange={(e) => setText(e.target.value)} placeholder={example} />
           <button className="search-btn">검색</button>
         </form>
       </section>
