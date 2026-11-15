@@ -4,13 +4,14 @@ import { api, saveLogin } from '../api/client';
 import { PasswordInput, CodeInput, Rule, DevCodeBox } from '../components/AuthInputs';
 import { useCountdown } from '../hooks/useCountdown';
 import { ClockIcon, MailIcon } from '../components/Icons';
+import { isCompleteCode, toCodeDigits } from '../utils/verificationCode';
 
 // 디자인은 두 화면(이메일 → 코드+새 비밀번호)인데, 서버는 세 번 부른다.
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(toCodeDigits);
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState(null);
@@ -20,6 +21,7 @@ export default function ForgotPasswordPage() {
   const longEnough = newPassword.length >= 8 && newPassword.length <= 64;
   const mixed = /[A-Za-z]/.test(newPassword) && /[0-9]/.test(newPassword);
   const same = newPassword !== '' && newPassword === confirm;
+  const codeComplete = isCompleteCode(code);
 
   async function sendCode(event) {
     event?.preventDefault();
@@ -28,7 +30,7 @@ export default function ForgotPasswordPage() {
       const sent = await api('/api/v1/auth/password/forgot', { method: 'POST', body: { email } });
       timer.restart(sent?.expiresInSeconds ?? 600);
       setDevCode(sent?.devCode ?? null);
-      setCode('');
+      setCode(toCodeDigits());
       setStep(2);
     } catch (err) {
       setError(err);
@@ -37,9 +39,10 @@ export default function ForgotPasswordPage() {
 
   async function reset(event) {
     event.preventDefault();
+    if (!codeComplete || !longEnough || !mixed || !same) return;
     setError(null);
     try {
-      const ticket = await api('/api/v1/auth/password/verify-code', { method: 'POST', body: { email, code } });
+      const ticket = await api('/api/v1/auth/password/verify-code', { method: 'POST', body: { email, code: code.join('') } });
       const tokens = await api('/api/v1/auth/password/reset', {
         method: 'POST',
         body: { resetToken: ticket.resetToken, newPassword },
@@ -81,7 +84,7 @@ export default function ForgotPasswordPage() {
               <span className="timer row-inline"><ClockIcon size={15} />{timer.text} 남음</span>
             </div>
             <CodeInput value={code} onChange={setCode} />
-            <DevCodeBox code={devCode} onUse={setCode} />
+            <DevCodeBox code={devCode} onUse={(value) => setCode(toCodeDigits(value))} />
             <div className="row-between">
               <span className="hint">코드는 10분 동안 유효해요.</span>
               <button type="button" className="link" onClick={() => sendCode()}>다시 보내기</button>
@@ -93,7 +96,7 @@ export default function ForgotPasswordPage() {
             <PasswordInput label="새 비밀번호 확인" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
             {confirm && !same && <p className="field-error">비밀번호가 서로 달라요.</p>}
           </section>
-          <button className="btn-primary" disabled={code.length !== 6 || !longEnough || !mixed || !same}>비밀번호 바꾸고 로그인</button>
+          <button className="btn-primary" disabled={!codeComplete || !longEnough || !mixed || !same}>비밀번호 바꾸고 로그인</button>
         </form>
       )}
     </>

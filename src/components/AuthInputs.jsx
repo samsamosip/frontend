@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { EyeIcon, EyeOffIcon, CheckIcon } from './Icons';
 
 // 눈 아이콘으로 비밀번호를 보였다 숨겼다 하는 입력칸
@@ -24,30 +24,47 @@ export function PasswordInput({ label, ...props }) {
 // 인증 코드 여섯 칸. 숫자를 넣으면 다음 칸으로, 지우면 이전 칸으로 간다. 붙여넣기도 된다.
 export function CodeInput({ value, onChange }) {
   const boxes = useRef([]);
-  const digits = Array.from({ length: 6 }, (_, i) => value[i] ?? '');
+  const digits = value;
+
+  useLayoutEffect(() => {
+    boxes.current.find((box) => box === document.activeElement)?.select();
+  }, [value]);
 
   function setAt(index, digit) {
     const next = digits.slice();
     next[index] = digit;
-    onChange(next.join('').slice(0, 6));
+    onChange(next);
   }
 
   function handleChange(index, raw) {
     const only = raw.replace(/\D/g, '');
-    if (only.length > 1) {
-      // 여러 글자 붙여넣기
-      onChange((digits.slice(0, index).join('') + only).slice(0, 6));
-      boxes.current[Math.min(index + only.length, 5)]?.focus();
+    if (!only) {
+      if (!raw) setAt(index, '');
       return;
     }
-    setAt(index, only);
-    if (only && index < 5) boxes.current[index + 1]?.focus();
+    // 전체 코드는 어느 칸에 붙여넣어도 처음부터 채우고, 일부 수정은 나머지 칸을 유지한다.
+    const start = only.length >= 6 ? 0 : index;
+    const inserted = only.slice(0, 6 - start);
+    const next = digits.slice();
+    [...inserted].forEach((digit, offset) => { next[start + offset] = digit; });
+    onChange(next);
+    boxes.current[Math.min(start + inserted.length, 5)]?.focus();
   }
 
   function handleKeyDown(index, event) {
-    if (event.key === 'Backspace' && !digits[index] && index > 0) {
-      setAt(index - 1, '');
-      boxes.current[index - 1]?.focus();
+    if (event.key === 'Backspace') {
+      event.preventDefault();
+      if (digits[index]) setAt(index, '');
+      else if (index > 0) {
+        setAt(index - 1, '');
+        boxes.current[index - 1]?.focus();
+      }
+    } else if (event.key === 'Delete') {
+      event.preventDefault();
+      setAt(index, '');
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      boxes.current[Math.max(0, Math.min(5, index + (event.key === 'ArrowLeft' ? -1 : 1)))]?.focus();
     }
   }
 
@@ -62,8 +79,20 @@ export function CodeInput({ value, onChange }) {
           autoComplete={i === 0 ? 'one-time-code' : 'off'}
           className={d ? 'filled' : ''}
           value={d}
-          onChange={(e) => handleChange(i, e.target.value)}
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => {
+            // 커서가 글자 앞에 있어도 한 자리 타이핑은 해당 칸만 교체한다.
+            const inserted = e.nativeEvent.data;
+            if (typeof inserted === 'string' && inserted.length === 1) {
+              if (/\d/.test(inserted)) handleChange(i, inserted);
+            } else handleChange(i, e.target.value);
+          }}
           onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={(e) => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text');
+            if (/\d/.test(text)) handleChange(i, text);
+          }}
         />
       ))}
     </div>

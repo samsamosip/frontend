@@ -4,24 +4,27 @@ import { api, saveLogin } from '../api/client';
 import { useCountdown } from '../hooks/useCountdown';
 import { CodeInput, DevCodeBox } from '../components/AuthInputs';
 import { ClockIcon, MailIcon, InfoIcon } from '../components/Icons';
+import { isCompleteCode, toCodeDigits } from '../utils/verificationCode';
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email; // 가입 화면이 넘겨준 이메일
   const [devCode, setDevCode] = useState(location.state?.devCode ?? null);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(toCodeDigits);
   const [error, setError] = useState(null);
   const [info, setInfo] = useState(null);
   const timer = useCountdown(600);
+  const codeComplete = isCompleteCode(code);
 
   if (!email) return <div className="state-box"><Link className="link" to="/signup">회원가입부터 해 주세요</Link></div>;
 
   async function verify(event) {
     event.preventDefault();
+    if (!codeComplete) return;
     setError(null);
     try {
-      const tokens = await api('/api/v1/auth/email/verify', { method: 'POST', body: { email, code } });
+      const tokens = await api('/api/v1/auth/email/verify', { method: 'POST', body: { email, code: code.join('') } });
       saveLogin(tokens);
       navigate('/', { replace: true });
     } catch (err) {
@@ -35,7 +38,7 @@ export default function VerifyEmailPage() {
       const sent = await api('/api/v1/auth/email/resend', { method: 'POST', body: { email } });
       timer.restart(sent.expiresInSeconds);
       setDevCode(sent.devCode ?? null);
-      setCode('');
+      setCode(toCodeDigits());
       setInfo('새 코드를 보냈어요. 이전 코드는 쓸 수 없어요.');
     } catch (err) {
       setError(err); // 1분 안에 다시 누르면 CODE_COOLDOWN
@@ -58,9 +61,9 @@ export default function VerifyEmailPage() {
           <span className="timer row-inline"><ClockIcon size={15} />{timer.text} 남음</span>
         </div>
         <CodeInput value={code} onChange={setCode} />
-        <DevCodeBox code={devCode} onUse={setCode} />
+        <DevCodeBox code={devCode} onUse={(value) => setCode(toCodeDigits(value))} />
         <p className="hint">코드는 10분 동안 유효해요.</p>
-        <button className="btn-primary" disabled={code.length !== 6}>확인</button>
+        <button className="btn-primary" disabled={!codeComplete}>확인</button>
         <div className="row-between">
           <span className="hint">메일이 안 왔나요?</span>
           <button type="button" className="link" onClick={resend}>코드 다시 보내기</button>

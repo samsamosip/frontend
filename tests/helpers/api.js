@@ -66,10 +66,13 @@ export async function mockApi(page, override = () => false) {
     else if (url.pathname === '/api/v1/me/applications') json = [];
     else if (url.pathname === '/api/v1/me/profile') { status = 404; json = { message: '저장한 정보가 없어요.' }; }
     else if (url.pathname === '/api/v1/me/suggestions') json = { items: [] };
+    else if (url.pathname === '/api/v1/me/account') json = { email: 'audit@example.com', nickname: '점검', hasPassword: true };
     else if (url.pathname === '/api/v1/codes') json = {};
     else if (/\/policies\/\d+\/eligibility$/.test(url.pathname)) json = { verdict: 'NEEDS_CHECK', verdictLabel: '확인 필요', conditions: [], missingFields: [] };
     else if (/\/policies\/\d+$/.test(url.pathname)) json = policies.find((policy) => policy.id === Number(url.pathname.split('/').at(-1)));
-    else if (url.pathname === '/api/v1/auth/password/forgot' || url.pathname === '/api/v1/auth/signup') json = { expiresInSeconds: 600 };
+    else if (['/api/v1/auth/password/forgot', '/api/v1/auth/signup', '/api/v1/auth/email/resend'].includes(url.pathname)) json = { expiresInSeconds: 600 };
+    else if (url.pathname === '/api/v1/auth/password/verify-code') json = { resetToken: 'test-reset-token' };
+    else if (['/api/v1/auth/email/verify', '/api/v1/auth/password/reset'].includes(url.pathname)) json = { accessToken: 'test-access', refreshToken: 'test-refresh' };
     else { status = 500; json = { message: `테스트 응답이 없는 경로: ${url.pathname}` }; }
     await route.fulfill({ status, json });
   });

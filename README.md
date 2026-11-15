@@ -47,5 +47,5 @@ backend와 policy-harvester의 다중 캡처 지원을 먼저 배포해야 한�
 
 `npm ci` 후 `npx playwright install --with-deps chromium webkit`으로 브라우저를 준비하고
 `npm run test:e2e`를 실행한다. 프로덕션 빌드를 띄워 검색 기록 복원, 응답 순서 역전,
-필터 로딩, 통신 오류 복구를 Chromium과 WebKit에서 검사한다.
+필터 로딩, 통신 오류 복구, 인증 코드 수정·붙여넣기·제출을 Chromium과 WebKit에서 검사한다.
 API 요청은 테스트 응답으로 대체한다.
