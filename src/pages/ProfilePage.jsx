@@ -75,6 +75,7 @@ export default function ProfilePage() {
           kosafIncomeBracket: form.isStudent && form.kosafIncomeBracket !== '' ? Number(form.kosafIncomeBracket) : null,
         },
       });
+      localStorage.setItem('profileSaved', 'yes'); // 다음 방문부터 소개 화면 없이 바로 홈
       navigate(returnTo ?? '/', { replace: Boolean(returnTo) });
     } catch (error) {
       setSaveError(error);
@@ -85,6 +86,7 @@ export default function ProfilePage() {
   async function deleteData() {
     if (!window.confirm('프로필과 준비함을 모두 지울까요?')) return;
     await api('/api/v1/me', { method: 'DELETE' });
+    localStorage.removeItem('profileSaved');
     setForm(EMPTY_FORM);
   }
 
