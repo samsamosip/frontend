@@ -55,6 +55,7 @@ export async function mockApi(page, override = () => false) {
   await page.addInitScript(() => {
     localStorage.setItem('welcomeSeen', 'yes');
     localStorage.setItem('skipOnboarding', 'yes');
+    sessionStorage.setItem('welcomeSeenThisVisit', 'yes'); // 소개 화면 건너뛰기
   });
   await page.route('**/api/v1/**', async (route) => {
     const url = new URL(route.request().url());

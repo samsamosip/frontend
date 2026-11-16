@@ -25,7 +25,6 @@ export function clearLogin() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('anonymousId');
-  localStorage.removeItem('profileSaved');
 }
 
 // ── 2. 오류 모양 통일 ────────────────────────────
