@@ -552,3 +552,20 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
 @media (prefers-reduced-motion: reduce) {
   .sk, .search-wait .dot, .search-wait-text { animation: none; }
 }
+
+/* 검색 전 "이렇게 물어보세요" 예시 질문 */
+.ask-examples { margin-top: 4px; }
+.ask-examples h2 { margin: 0 0 4px; }
+.ask-examples .hint { margin: 0 0 12px; }
+.ask-list { display: grid; gap: 10px; }
+.ask-item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; text-align: left; font: inherit; color: var(--text);
+  background: #fff; border: 1px solid transparent; border-radius: 18px 18px 18px 6px; padding: 14px 16px; box-shadow: 0 4px 14px rgb(31 95 217 / 8%);
+  animation: ask-in .45s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+.ask-text { font-size: 15px; font-weight: 700; line-height: 1.45; }
+.ask-text::before { content: '“'; color: var(--blue); margin-right: 2px; }
+.ask-text::after { content: '”'; color: var(--blue); margin-left: 2px; }
+.ask-count { display: flex; gap: 6px; }
+@media (hover: hover) { .ask-item:hover { border-color: var(--blue-light); background: #f7faff; } }
+.ask-item:active { transform: scale(.98); }
+@keyframes ask-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ask-item { animation: none; } }

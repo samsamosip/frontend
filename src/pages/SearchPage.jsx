@@ -119,6 +119,9 @@ function SearchResults({ examples }) {
         </form>
       </section>
 
+      {/* 아직 검색 전: 실제로 결과가 있는 예시 질문을 보여 주고, 누르면 바로 검색 */}
+      {!query && !loading && <SearchExamples examples={examples} onPick={search} />}
+
       {loading && <SearchWaiting />}
       {error && <ErrorBox error={error} onRetry={reload} />}
 
@@ -206,5 +209,29 @@ function SearchResults({ examples }) {
         </>
       )}
     </>
+  );
+}
+
+function SearchExamples({ examples, onPick }) {
+  const list = Array.isArray(examples)
+    ? examples.filter((item) => typeof item.text === 'string' && item.match + item.needsCheck > 0).slice(0, 3)
+    : [];
+  if (list.length === 0) return null;
+  return (
+    <section className="ask-examples">
+      <h2>이렇게 물어보세요</h2>
+      <p className="hint">평소 말하듯이 물어보면 내 조건에 맞는 공고를 찾아 줘요.</p>
+      <div className="ask-list">
+        {list.map((item, i) => (
+          <button key={item.text} type="button" className="ask-item" style={{ '--i': i }} onClick={() => onPick(item.text)}>
+            <span className="ask-text">{item.text}</span>
+            <span className="ask-count">
+              {item.match > 0 ? <span className="badge badge-match">일치 {item.match}</span> : null}
+              {item.needsCheck > 0 ? <span className="badge badge-check">확인 {item.needsCheck}</span> : null}
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
