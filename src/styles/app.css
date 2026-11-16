@@ -590,3 +590,16 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
 
 /* 아래 탭 바는 항상 맨 위에: 파란 윗부분에 겹쳐 올린 카드(z-index 1)가 스크롤 중 탭 바를 덮던 것 */
 .tab-bar { z-index: 100; }
+
+/* 선택 칸: 사파리가 기본 모양(얇고 납작)으로 그리던 것을 다른 입력칸과 같게.
+   기본 모양을 끄고, 오른쪽 꺾쇠를 그림으로 넣는다. 크롬·사파리 모두 같은 모양 */
+select {
+  -webkit-appearance: none; appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; background-size: 16px 16px;
+  padding-right: 38px; line-height: 1.4; color: var(--text);
+}
+.row-between select { padding-right: 32px; background-position: right 10px center; }
+.select-small { padding-right: 30px; background-position: right 8px center; background-size: 14px 14px; }
+select:disabled { background-color: #f6f8fb; color: var(--muted); }
