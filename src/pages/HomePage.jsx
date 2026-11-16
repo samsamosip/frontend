@@ -55,7 +55,8 @@ export default function HomePage() {
       <section className="hero hero-home">
         <BenefitIllustration />
         <p>{account.data ? <><b>{account.data.nickname}</b> 님 맞춤 혜택</> : '내 맞춤 혜택'}</p>
-        <h1>받을 수 있는 혜택 <em>{counts ? counts.match + counts.needsCheck : 0}건</em></h1>
+        {/* 불러오는 동안 0건이 잠깐 보이지 않게, 숫자가 오기 전에는 …로 */}
+        <h1>받을 수 있는 혜택 <em>{counts ? `${counts.match + counts.needsCheck}건` : '…'}</em></h1>
         {heroSub && <p className="hero-sub">{heroSub}</p>}
         <Link to="/search" className="search-entry"><SearchIcon size={20} />궁금한 혜택을 물어보세요</Link>
         {banner && (
@@ -100,7 +101,7 @@ export default function HomePage() {
       </div>
 
       <div className="row-between">
-        <h2>공고 {matches.data?.totalElements ?? 0}건</h2>
+        <h2>공고 {matches.data ? `${matches.data.totalElements}건` : ''}</h2>
         <select aria-label="판정" value={verdict} onChange={(e) => { setVerdict(e.target.value); setPage(0); }}>
           <option value="">일치 + 확인 필요</option>
           <option value="MATCH">조건 일치</option>

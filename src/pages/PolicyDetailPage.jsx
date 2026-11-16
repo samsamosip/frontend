@@ -100,6 +100,14 @@ export default function PolicyDetailPage() {
 
       <section className="card">
         <h2 className="card-title">내 조건과 비교</h2>
+        {/* 조건이 하나도 없으면 상자가 비지 않게 한 줄로 알려 준다 */}
+        {j.conditions.length === 0 && (
+          <p className="hint">
+            {j.verdict === 'MATCH'
+              ? '따로 정해 둔 자격 조건이 없는 공고예요.'
+              : j.explanation || '자격 조건은 공고 원문에서 확인해 주세요.'}
+          </p>
+        )}
         {j.conditions.map((c) => (
           <div key={c.label} className="condition">
             <div className="row-between">
