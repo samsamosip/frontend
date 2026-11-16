@@ -282,6 +282,7 @@ export default function ProfilePage() {
       </section>
 
       {saveError && <ErrorBox error={saveError} />}
+      <p className="notice privacy-note">입력한 정보는 맞춤 공고를 찾는 데만 써요.<br />아래 ‘내 데이터 전체 삭제’로 언제든 지울 수 있어요.</p>
       <button className="btn-primary" type="submit">{returnTo ? '저장하고 검색 결과 다시 보기' : '저장하고 맞춤 공고 보기'}</button>
       <div className="row-between under-save">
         <span className="hint">{updatedAt ? `마지막 수정 ${updatedAt.slice(0, 10).replaceAll('-', '.')}` : ''}</span>
