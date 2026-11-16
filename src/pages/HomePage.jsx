@@ -94,7 +94,8 @@ export default function HomePage() {
         </div>
       )}
 
-      <div className="chips">
+      {/* 작은 폰에서 "참여권리"만 둘째 줄로 떨어지지 않게 한 줄로 두고 옆으로 밀어서 본다 */}
+      <div className="chips chips-scroll">
         {CATEGORIES.map((name) => (
           <button
             key={name}

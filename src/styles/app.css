@@ -609,3 +609,8 @@ select:disabled { background-color: #f6f8fb; color: var(--muted); }
 .org .org-icon { flex: none; }
 .org-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.4; }
 .org-text .muted { font-size: 12px; }
+
+/* 맨 홈 분야 버튼: 한 줄로, 넘치면 옆으로 밀기 (화면 끝까지 닿게) */
+.chips-scroll { flex-wrap: nowrap; overflow-x: auto; margin-left: -16px; margin-right: -16px; padding: 2px 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips-scroll::-webkit-scrollbar { display: none; }
+.chips-scroll .chip { flex: none; }
