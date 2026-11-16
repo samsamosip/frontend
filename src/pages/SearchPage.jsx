@@ -214,7 +214,7 @@ function SearchResults({ examples }) {
 
 function SearchExamples({ examples, onPick }) {
   const list = Array.isArray(examples)
-    ? examples.filter((item) => typeof item.text === 'string' && item.match + item.needsCheck > 0).slice(0, 3)
+    ? examples.filter((item) => typeof item.text === 'string' && item.match + item.needsCheck > 0).slice(0, 4)
     : [];
   if (list.length === 0) return null;
   return (
