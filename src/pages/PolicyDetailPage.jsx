@@ -81,8 +81,11 @@ export default function PolicyDetailPage() {
         <div className="row-between">
           <span className="row-inline org">
             <span className="org-icon"><BuildingIcon size={16} /></span>
-            <strong>{p.organization}</strong>
-            <span className="muted">· {p.categories.join(', ')}</span>
+            {/* 기관 이름이 길어도 분야가 혼자 다음 줄로 떨어지지 않게 두 줄로 */}
+            <span className="org-text">
+              <strong>{p.organization}</strong>
+              {p.categories.length > 0 && <span className="muted">{p.categories.join(', ')}</span>}
+            </span>
           </span>
           <span className="chip-small">{SOURCE_TEXT[p.source] ?? ''}</span>
         </div>

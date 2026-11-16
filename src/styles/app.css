@@ -603,3 +603,9 @@ select {
 .row-between select { padding-right: 32px; background-position: right 10px center; }
 .select-small { padding-right: 30px; background-position: right 8px center; background-size: 14px 14px; }
 select:disabled { background-color: #f6f8fb; color: var(--muted); }
+
+/* 공고 상세 맨 위: 기관 아이콘 옆에 기관 이름과 분야를 두 줄로 */
+.org { flex-wrap: nowrap; align-items: center; gap: 8px; }
+.org .org-icon { flex: none; }
+.org-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.4; }
+.org-text .muted { font-size: 12px; }
