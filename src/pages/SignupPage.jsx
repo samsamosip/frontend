@@ -41,10 +41,12 @@ export default function SignupPage() {
       <section className="card">
         <label>이메일<input name="email" type="email" required value={form.email} onChange={change} placeholder="example@email.com" /></label>
         <p className="hint">인증 코드를 이 주소로 보내요.</p>
+        <FieldError error={error} name="email" />
 
         <PasswordInput label="비밀번호" name="password" required value={form.password} onChange={change} />
         <Rule ok={longEnough}>8자 이상</Rule>
         <Rule ok={mixed}>영문과 숫자를 함께 사용</Rule>
+        <FieldError error={error} name="password" />
 
         <PasswordInput label="비밀번호 확인" name="confirm" required value={form.confirm} onChange={change} />
         {form.confirm && (same
@@ -53,9 +55,14 @@ export default function SignupPage() {
 
         <label>닉네임<input name="nickname" required minLength={2} maxLength={10} value={form.nickname} onChange={change} /></label>
         <p className="hint">맞춤 홈에서 「{form.nickname || '홍길동'}님」처럼 불러 드려요. 2~10자</p>
+        <FieldError error={error} name="nickname" />
       </section>
-      {error && (
+      {/* 칸마다 틀린 곳은 그 칸 아래에, 나머지(이미 가입된 이메일 등)는 여기에 */}
+      {error && !hasFieldErrors(error) && (
         <p className="error-box" role="alert">{error.message}</p>
+      )}
+      {error && hasFieldErrors(error) && (
+        <p className="error-box" role="alert">빨간 글씨로 표시한 칸을 확인해 주세요.</p>
       )}
       <button className="btn-primary" disabled={sending || !longEnough || !mixed || !same}>
         {sending ? '보내는 중… (처음엔 1분쯤 걸릴 수 있어요)' : '가입하고 인증 코드 받기'}
@@ -64,4 +71,14 @@ export default function SignupPage() {
       <p className="notice">이미 계정이 있나요? <Link to="/login">로그인</Link></p>
     </form>
   );
+}
+
+function hasFieldErrors(error) {
+  return Boolean(error?.errors && Object.keys(error.errors).length > 0);
+}
+
+// 서버가 칸 이름으로 알려 준 오류를 그 칸 바로 아래에 보여 준다
+function FieldError({ error, name }) {
+  const message = error?.errors?.[name];
+  return message ? <p className="field-error">{message}</p> : null;
 }
