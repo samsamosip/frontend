@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { useSearchScroll } from '../hooks/useSearchScroll';
-import { Loading, ErrorBox } from '../components/StateBox';
+import { ErrorBox, SearchWaiting } from '../components/StateBox';
 import PolicyCard from '../components/PolicyCard';
 import SearchProfileSummary from '../components/SearchProfileSummary';
 import SearchResultSummary from '../components/SearchResultSummary';
@@ -119,7 +119,7 @@ function SearchResults({ examples }) {
         </form>
       </section>
 
-      {loading && <Loading />}
+      {loading && <SearchWaiting />}
       {error && <ErrorBox error={error} onRetry={reload} />}
 
       {result && !loading && (

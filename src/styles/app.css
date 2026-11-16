@@ -527,3 +527,28 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
 .lp-end { padding: 72px 24px 36px; }
 .lp-end h2 { margin-bottom: 0; }
 .lp-end-sub { margin: 12px 0 22px; color: #dceaff; font-size: 14px; line-height: 1.6; }
+
+/* 화면에는 안 보이고 화면 읽기 프로그램만 읽는 글자 */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* 불러오는 동안 카드 모양(스켈레톤) */
+.skeleton-card { display: grid; gap: 10px; }
+.sk { display: block; height: 14px; border-radius: 8px; background: linear-gradient(90deg, #edf1f7 0%, #f6f8fc 40%, #edf1f7 80%); background-size: 200% 100%; animation: sk-shine 1.3s ease-in-out infinite; }
+.sk-pill { width: 72px; height: 22px; border-radius: 99px; }
+.sk-date { width: 64px; }
+.sk-title { width: 70%; height: 18px; }
+.sk-line { width: 92%; }
+.sk-chip { width: 110px; height: 22px; border-radius: 99px; }
+.sk-link { width: 64px; }
+@keyframes sk-shine { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+/* 검색 기다리는 동안 단계 문구 */
+.search-wait { display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; font-size: 14px; font-weight: 700; color: var(--blue); }
+.search-wait .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: wait-pulse 1s ease-in-out infinite; }
+.search-wait-text { animation: wait-in .35s ease; }
+@keyframes wait-pulse { 50% { opacity: .25; transform: scale(.7); } }
+@keyframes wait-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sk, .search-wait .dot, .search-wait-text { animation: none; }
+}

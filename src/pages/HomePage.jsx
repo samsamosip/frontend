@@ -1,8 +1,9 @@
+import useCountUp from '../hooks/useCountUp';
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { isLoggedIn } from '../api/client';
 import { useApi } from '../hooks/useApi';
-import { Loading, ErrorBox, Empty } from '../components/StateBox';
+import { ErrorBox, Empty, SkeletonCards } from '../components/StateBox';
 import { SearchIcon, CloseIcon, ClockIcon, BenefitIllustration } from '../components/Icons';
 import PolicyCard, { ClosingCard } from '../components/PolicyCard';
 
@@ -49,6 +50,11 @@ export default function HomePage() {
     setHiddenBanner(firstBanner.message);
   }
   const counts = matches.data?.counts;
+  // 숫자가 0(또는 이전 값)에서 빠르게 올라간다
+  const total = useCountUp(counts ? counts.match + counts.needsCheck : null);
+  const matchN = useCountUp(counts?.match);
+  const checkN = useCountUp(counts?.needsCheck);
+  const noMatchN = useCountUp(counts?.noMatch);
 
   return (
     <>
@@ -56,7 +62,7 @@ export default function HomePage() {
         <BenefitIllustration />
         <p>{account.data ? <><b>{account.data.nickname}</b> 님 맞춤 혜택</> : '내 맞춤 혜택'}</p>
         {/* 불러오는 동안 0건이 잠깐 보이지 않게, 숫자가 오기 전에는 …로 */}
-        <h1>받을 수 있는 혜택 <em>{counts ? `${counts.match + counts.needsCheck}건` : '…'}</em></h1>
+        <h1>받을 수 있는 혜택 <em>{total != null ? `${total.toLocaleString()}건` : '…'}</em></h1>
         {heroSub && <p className="hero-sub">{heroSub}</p>}
         <Link to="/search" className="search-entry"><SearchIcon size={20} />궁금한 혜택을 물어보세요</Link>
         {banner && (
@@ -82,9 +88,9 @@ export default function HomePage() {
 
       {counts && (
         <div className="count-box card">
-          <div><b className="c-match">{counts.match}</b>✓ 조건 일치</div>
-          <div><b className="c-check">{counts.needsCheck}</b>? 확인 필요</div>
-          <div><b className="c-nomatch">{counts.noMatch}</b>✕ 조건 불일치</div>
+          <div><b className="c-match">{matchN}</b>✓ 조건 일치</div>
+          <div><b className="c-check">{checkN}</b>? 확인 필요</div>
+          <div><b className="c-nomatch">{noMatchN}</b>✕ 조건 불일치</div>
         </div>
       )}
 
@@ -113,7 +119,7 @@ export default function HomePage() {
         <button className={sort === 'deadline' ? 'active' : ''} onClick={() => { setSort('deadline'); setPage(0); }}>마감순</button>
       </div>
 
-      {matches.loading && <Loading />}
+      {matches.loading && <SkeletonCards />}
       {matches.error && <ErrorBox error={matches.error} onRetry={matches.reload} />}
       {matches.data?.content.map((item) => (
         <PolicyCard key={item.policy.id} item={item} />

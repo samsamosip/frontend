@@ -68,7 +68,7 @@ test('최신 요청이 끝나기 전에는 이전 요청이 완료돼도 로딩�
   await submit(page, CERTIFICATE_QUERY);
   await expect.poll(() => pending.size).toBe(2);
   await pending.get(MONTHLY_QUERY).fulfill({ json: searchResult(MONTHLY_QUERY) }).catch(() => {});
-  await expect(page.getByRole('status')).toHaveText('불러오는 중이에요…');
+  await expect(page.getByRole('status')).toHaveText(/하는 중…$|찾는 중…$/);
   await expect(page.locator('.card-link')).toHaveCount(0);
   await pending.get(CERTIFICATE_QUERY).fulfill({ json: searchResult(CERTIFICATE_QUERY) });
   await expect(page.getByRole('heading', { name: policies[5].title })).toBeVisible();
