@@ -587,3 +587,6 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
 .consent-note { font-size: 12px; margin-top: 10px; }
 .consent-note a, .privacy-note a, .welcome-note a { color: inherit; text-decoration: underline; font-weight: 600; }
 .lp-end .welcome-note a { color: #fff; }
+
+/* 아래 탭 바는 항상 맨 위에: 파란 윗부분에 겹쳐 올린 카드(z-index 1)가 스크롤 중 탭 바를 덮던 것 */
+.tab-bar { z-index: 100; }
