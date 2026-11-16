@@ -111,7 +111,7 @@ export default function WelcomePage({ onStart }) {
           </section>
 
           <StartButtons onStart={onStart} />
-          <p className="notice welcome-note">내 정보는 둘러본 뒤 천천히 입력해도 괜찮아요.</p>
+          <p className="notice welcome-note">내 정보는 둘러본 뒤 천천히 입력해도 괜찮아요. <Link to="/privacy" onClick={() => onStart()}>개인정보 처리방침</Link></p>
           <a className="lp-down" href="#lp-flow">어떻게 쓰는지 볼까요? <span aria-hidden="true">↓</span></a>
         </div>
 
@@ -142,7 +142,7 @@ export default function WelcomePage({ onStart }) {
             <h2>지금 내 혜택을<br />찾아볼까요?</h2>
             <p className="lp-end-sub">정부 정책과 학교 장학금 1,400여 개 중에서<br />내 조건에 맞는 것만 골라 드려요.</p>
             <StartButtons onStart={onStart} />
-            <p className="notice welcome-note">내 정보는 둘러본 뒤 천천히 입력해도 괜찮아요.</p>
+            <p className="notice welcome-note">내 정보는 둘러본 뒤 천천히 입력해도 괜찮아요. <Link to="/privacy" onClick={() => onStart()}>개인정보 처리방침</Link></p>
           </section>
         </div>
       </main>

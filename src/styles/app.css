@@ -569,3 +569,21 @@ button.upload-box:disabled { opacity: .6; cursor: wait; }
 .ask-item:active { transform: scale(.98); }
 @keyframes ask-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ask-item { animation: none; } }
+
+/* 개인정보 처리방침 */
+.privacy { padding-top: 12px; }
+.privacy h1 { font-size: 22px; margin: 8px 0 4px; }
+.privacy > .hint { margin: 0 0 14px; }
+.privacy .card h2 { font-size: 16px; margin: 0 0 10px; }
+.privacy .card p, .privacy .card li { font-size: 14px; line-height: 1.65; }
+.privacy .card ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.pv-back { padding: 0; margin: 0; }
+.pv-table { display: grid; gap: 10px; }
+.pv-row.pv-head { display: none; }
+.pv-row { display: grid; gap: 3px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.55; }
+.pv-row:nth-child(2) { border-top: 0; padding-top: 0; }
+.pv-row span:nth-child(1) { color: var(--muted); font-size: 12px; }
+.pv-row span:nth-child(2) { font-weight: 700; font-size: 14px; }
+.consent-note { font-size: 12px; margin-top: 10px; }
+.consent-note a, .privacy-note a, .welcome-note a { color: inherit; text-decoration: underline; font-weight: 600; }
+.lp-end .welcome-note a { color: #fff; }

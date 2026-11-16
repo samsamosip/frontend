@@ -95,6 +95,7 @@ export default function LoginPage() {
         {locked ? <Link to="/">처음으로</Link> : <Link to="/password/forgot">비밀번호 찾기</Link>}
       </p>
       {!locked && <p className="notice">비밀번호를 5번 틀리면 15분 동안 로그인이 잠겨요.</p>}
+      <p className="notice consent-note">카카오로 처음 로그인하면 <Link to="/privacy">개인정보 처리방침</Link>에 동의한 것으로 봐요.</p>
     </form>
   );
 }

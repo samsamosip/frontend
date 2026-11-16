@@ -60,6 +60,7 @@ export default function SignupPage() {
       <button className="btn-primary" disabled={sending || !longEnough || !mixed || !same}>
         {sending ? '보내는 중… (처음엔 1분쯤 걸릴 수 있어요)' : '가입하고 인증 코드 받기'}
       </button>
+      <p className="notice consent-note">가입하면 <Link to="/privacy">개인정보 처리방침</Link>에 동의한 것으로 봐요. 만 14세 미만은 가입할 수 없어요.</p>
       <p className="notice">이미 계정이 있나요? <Link to="/login">로그인</Link></p>
     </form>
   );

@@ -15,6 +15,7 @@ import CustomPolicyPage from './pages/CustomPolicyPage';
 import NotificationSettingsPage from './pages/NotificationSettingsPage';
 import Placeholder from './pages/Placeholder';
 import AccountPage from './pages/AccountPage';
+import PrivacyPage from './pages/PrivacyPage';
 import FirstVisitGate from './components/FirstVisitGate';
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/password/forgot" element={<ForgotPasswordPage />} />
             <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="*" element={<Placeholder title="페이지를 찾을 수 없어요" />} />
           </Route>
         </Route>
