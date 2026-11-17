@@ -104,7 +104,8 @@ function SearchResults({ examples }) {
 
   const chips = result ? toChips(result.understood) : [];
   const personalized = result && result.understood.keywords.length === 0 && result.understood.audience.length === 0;
-  const needsCheck = result?.content.filter((item) => item.verdict === 'NEEDS_CHECK').length ?? 0;
+  // 지금 쪽의 카드 수가 아니라 검색 전체의 확인 필요 수 (위 숫자와 같게)
+  const needsCheck = result?.counts?.needsCheck ?? 0;
   const noMatch = result?.counts?.noMatch ?? 0;
   const onlyNoMatch = result?.content.length === 0 && noMatch > 0;
 
