@@ -24,3 +24,26 @@ test('판정 못 한 조건은 공고 문장을 보여 주고 비어 있다고 �
   await expect(rows.nth(2)).toContainText('해당하면 제외: 휴학생');
   await expect(page.getByText('원문 확인 필요')).toHaveCount(0);
 });
+
+test('같은 이름의 조건은 한 줄로 합치고 더 나쁜 판정을 보여 준다', async ({ page }) => {
+  await mockApi(page, async (route, url) => {
+    if (!/\/policies\/\d+\/eligibility$/.test(url.pathname)) return false;
+    await route.fulfill({ json: {
+      verdict: 'NO_MATCH', verdictLabel: '조건 불일치', missingFields: [], explanation: '',
+      conditions: [
+        { label: '지역', truth: 'TRUE', requirement: '충남 아산시 주민등록', myValue: '충남 아산시', missingField: null, evidence: 'zipCd' },
+        { label: '나이', truth: 'TRUE', requirement: '만 19~39세', myValue: '만 24세', missingField: null, evidence: '' },
+        { label: '지역', truth: 'TRUE', requirement: '충남 아산시 주민등록', myValue: '충남 아산시', missingField: null, evidence: '' },
+        { label: '나이', truth: 'FALSE', requirement: '만 18~23세', myValue: '만 24세', missingField: null, evidence: '' },
+      ],
+    } });
+    return true;
+  });
+  await page.goto('/policies/1');
+  const rows = page.locator('.condition');
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0)).toContainText('충남 아산시 주민등록');
+  await expect(rows.nth(1)).toContainText('만 19~39세');
+  await expect(rows.nth(1)).toContainText('만 18~23세');
+  await expect(rows.nth(1)).toContainText('안 맞음');
+});

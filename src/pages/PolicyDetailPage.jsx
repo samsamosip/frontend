@@ -28,6 +28,28 @@ function myValueText(c) {
   return c.missingField ? '비어 있음 (모름)' : '공고 원문과 직접 비교해 주세요';
 }
 
+// 온통청년이 정리한 칸과 AI가 글에서 뽑은 조건이 같은 이름(지역, 나이…)으로 겹치면 한 줄로 합친다.
+// 판정은 가장 나쁜 쪽(안 맞음 > 확인 필요 > 맞음), 공고 문장은 다른 것만 줄을 바꿔 이어 쓴다.
+const TRUTH_RANK = { FALSE: 2, UNKNOWN: 1, TRUE: 0 };
+
+function mergeByLabel(conditions) {
+  const rows = new Map();
+  for (const c of conditions) {
+    const text = requirementText(c);
+    const row = rows.get(c.label);
+    if (!row) {
+      rows.set(c.label, { ...c, texts: [text] });
+      continue;
+    }
+    // AI가 분류 이름을 그대로 옮긴 "중소기업, 기타"는 앞 줄("중소기업 등 (원문 확인)")과 같은 말이라 붙이지 않는다
+    if (!row.texts.includes(text) && !/(^|, )기타$/.test(text)) row.texts.push(text);
+    if (TRUTH_RANK[c.truth] > TRUTH_RANK[row.truth]) row.truth = c.truth;
+    row.myValue ??= c.myValue;
+    row.missingField ??= c.missingField;
+  }
+  return [...rows.values()];
+}
+
 function fullDate(date) {
   return date ? date.slice(0, 10).replaceAll('-', '.') : '';
 }
@@ -124,14 +146,14 @@ export default function PolicyDetailPage() {
               : j.explanation || '자격 조건은 공고 원문에서 확인해 주세요.'}
           </p>
         )}
-        {j.conditions.map((c) => (
+        {mergeByLabel(j.conditions).map((c) => (
           <div key={c.label} className="condition">
             <div className="row-between">
               <strong>{c.label}</strong>
               <span className={`badge ${TRUTH[c.truth].className}`}>{TRUTH[c.truth].text}</span>
             </div>
             <div className="compare-grid">
-              <span>공고</span><span className="pre-line">{requirementText(c)}</span>
+              <span>공고</span><span className="pre-line">{c.texts.join('\n')}</span>
               <span>내 정보</span><span className={c.myValue == null && !c.missingField ? 'muted' : undefined}>{myValueText(c)}</span>
             </div>
           </div>
