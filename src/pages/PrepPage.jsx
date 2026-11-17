@@ -175,7 +175,11 @@ function Checklist({ id, onChanged, onDeleted }) {
         </div>
       )}
       {detail.data.applyMethod && (
-        <p className="hint"><b>신청 방법</b> · {detail.data.applyMethod}</p>
+        // 원문 줄바꿈("❍ 신청기간 …", "- 온라인 …")을 살려서 보여 준다
+        <div className="hint">
+          <b>신청 방법</b>
+          <p className="pre-line">{detail.data.applyMethod.trim()}</p>
+        </div>
       )}
       <div className="row-between status-row">
         <span className="hint">상태</span>
