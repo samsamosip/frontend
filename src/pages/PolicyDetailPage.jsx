@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useApi } from '../hooks/useApi';
 import { Loading, ErrorBox } from '../components/StateBox';
-import { VerdictBadge, computeDDay, deadlineText } from '../components/PolicyCard';
+import { VerdictBadge, computeDDay, deadlineText, opensText, shortDate } from '../components/PolicyCard';
 import { StarIcon, ClockIcon, BuildingIcon } from '../components/Icons';
 import { searchReturnPath } from '../utils/searchReturnPath';
 
@@ -131,7 +131,9 @@ export default function PolicyDetailPage() {
           <VerdictBadge verdict={j.verdict} label={j.verdictLabel} />
           <span className="deadline row-inline">
             <ClockIcon size={16} />
-            {dDay === null ? '상시 모집' : `${deadlineText(dDay, p.applyEndDate)} 마감`}
+            {opensText(p.applyStartDate)
+              ? `${opensText(p.applyStartDate)}${p.applyEndDate ? ` · ${shortDate(p.applyEndDate)} 마감` : ''}`
+              : dDay === null ? '상시 모집' : `${deadlineText(dDay, p.applyEndDate)} 마감`}
           </span>
         </div>
       </section>

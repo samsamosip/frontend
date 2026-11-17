@@ -38,6 +38,12 @@ export function deadlineText(dDay, endDate) {
   return `${dDayLabel(dDay)} · ${shortDate(endDate)}`;
 }
 
+// 아직 신청이 시작되지 않았으면 "12.01부터 신청", 이미 시작했거나 시작일을 모르면 null
+export function opensText(startDate) {
+  const days = computeDDay(startDate);
+  return days !== null && days > 0 ? `${shortDate(startDate)}부터 신청` : null;
+}
+
 const SOURCE_TEXT = {
   ONTONG: '출처: 정부 · 온통청년',
   SCHOOL: '학교 장학',
@@ -47,11 +53,13 @@ const SOURCE_TEXT = {
 // item = /me/matches 또는 /search 의 content 한 칸
 export default function PolicyCard({ item, returnTo }) {
   const { policy, verdict, verdictLabel, summary, dDay } = item;
+  // 아직 신청 전이면 마감까지 남은 날보다 언제부터 신청하는지가 먼저다
+  const opens = opensText(policy.applyStartDate);
   return (
     <Link to={`/policies/${policy.id}`} state={returnTo ? { returnTo } : null} className="card card-link">
       <div className="row-between">
         <VerdictBadge verdict={verdict} label={verdictLabel} />
-        <span className={dDay !== null && dDay <= 3 ? 'deadline urgent' : 'deadline'}>{deadlineText(dDay, policy.applyEndDate)}</span>
+        <span className={!opens && dDay !== null && dDay <= 3 ? 'deadline urgent' : 'deadline'}>{opens ?? deadlineText(dDay, policy.applyEndDate)}</span>
       </div>
       <h3 className="title-clamp">{policy.title}</h3>
       <p className="amount">{policy.support?.label ?? policy.support?.summary}</p>
