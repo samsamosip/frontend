@@ -15,6 +15,19 @@ const TRUTH = {
 
 const SOURCE_TEXT = { ONTONG: '출처: 온통청년', SCHOOL: '출처: 학교', USER: '직접 등록' };
 
+// AI가 프로필 항목으로 바꾸지 못한 조건(예: 이수 학점, 특정 학과)은 requirement가 "원문 확인 필요"로 온다.
+// 그 대신 공고의 원래 문장(evidence)을 보여 주고, 입력할 칸이 없으니 "비어 있음"이라고 하지 않는다.
+function requirementText(c) {
+  if (!c.requirement?.endsWith('원문 확인 필요') || !c.evidence) return c.requirement;
+  return c.requirement.startsWith('해당하면 제외') ? `해당하면 제외: ${c.evidence}` : c.evidence;
+}
+
+function myValueText(c) {
+  if (c.myValue != null) return c.myValue;
+  // missingField가 있으면 내 정보에서 입력할 수 있는 항목이다
+  return c.missingField ? '비어 있음 (모름)' : '공고 원문과 직접 비교해 주세요';
+}
+
 function fullDate(date) {
   return date ? date.slice(0, 10).replaceAll('-', '.') : '';
 }
@@ -118,8 +131,8 @@ export default function PolicyDetailPage() {
               <span className={`badge ${TRUTH[c.truth].className}`}>{TRUTH[c.truth].text}</span>
             </div>
             <div className="compare-grid">
-              <span>공고</span><span>{c.requirement}</span>
-              <span>내 정보</span><span>{c.myValue ?? '비어 있음 (모름)'}</span>
+              <span>공고</span><span className="pre-line">{requirementText(c)}</span>
+              <span>내 정보</span><span className={c.myValue == null && !c.missingField ? 'muted' : undefined}>{myValueText(c)}</span>
             </div>
           </div>
         ))}
