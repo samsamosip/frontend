@@ -20,3 +20,20 @@ test('가구 소득으로 기준중위소득 % 를 계산해 저장한다', asyn
   await expect.poll(() => saved?.householdMedianIncomePct).toBe(92);
   expect(saved.householdIncomeYear).toBe(2026);
 });
+
+test('월 소득을 너무 크게 넣으면 안내하고 저장하지 않는다', async ({ page }) => {
+  let saves = 0;
+  await mockApi(page, async (route, url) => {
+    if (url.pathname !== '/api/v1/me/profile') return false;
+    if (route.request().method() === 'PUT') { saves++; await route.fulfill({ json: {} }); }
+    else await route.fulfill({ status: 404, json: { message: '저장한 정보가 없어요.' } });
+    return true;
+  });
+  await page.goto('/profile');
+  await page.getByRole('combobox', { name: '가구원 수' }).selectOption('1');
+  await page.getByRole('spinbutton', { name: '가구 월 소득' }).fill('3000');
+  await expect(page.getByText('월 소득이 너무 커요')).toBeVisible();
+  await page.getByRole('button', { name: /저장/ }).click();
+  await expect(page).toHaveURL(/\/profile/);
+  expect(saves).toBe(0);
+});

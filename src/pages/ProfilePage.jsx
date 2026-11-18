@@ -4,7 +4,7 @@ import { api, ApiError, clearLogin, isLoggedIn } from '../api/client';
 import { useApi } from '../hooks/useApi';
 import { Loading, ErrorBox } from '../components/StateBox';
 import { searchReturnPath } from '../utils/searchReturnPath';
-import { MEDIAN_INCOME_YEAR, medianIncomePct, monthlyMedian } from '../utils/medianIncome';
+import { MEDIAN_INCOME_YEAR, MAX_MEDIAN_PCT, medianIncomePct, monthlyMedian } from '../utils/medianIncome';
 
 const EMPTY_FORM = {
   birthDate: '', sido: '', zipCd: '', jobCd: '', schoolCd: '', mrgSttsCd: '',
@@ -55,6 +55,8 @@ export default function ProfilePage() {
     setSaveError(null);
     const householdPct = medianIncomePct(form.householdSize, form.householdMonthlyIncome)
       ?? (form.householdMedianIncomePct === '' ? null : Number(form.householdMedianIncomePct));
+    // 서버는 0~1000% 만 받는다. 넘으면 칸 아래 안내가 이미 보이니 저장하지 않는다
+    if (householdPct !== null && householdPct > MAX_MEDIAN_PCT) return;
     try {
       await api('/api/v1/me/profile', {
         method: 'PUT',
@@ -247,7 +249,9 @@ export default function ProfilePage() {
             placeholder="월 소득 (만원)"
           />
         </div>
-        {typedPct !== null ? (
+        {typedPct !== null && typedPct > MAX_MEDIAN_PCT ? (
+          <p className="field-error">월 소득이 너무 커요. 만원 단위로 넣었는지 확인해 주세요. (예: 월 300만 원 → 300)</p>
+        ) : typedPct !== null ? (
           <p className="hint">
             기준중위소득 <b>약 {typedPct}%</b>예요. ({MEDIAN_INCOME_YEAR}년 {form.householdSize}인 가구 기준 월 {Math.round(monthlyMedian(Number(form.householdSize)) / 10000).toLocaleString()}만 원)
           </p>

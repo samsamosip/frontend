@@ -2,6 +2,9 @@
 // 7명 이상은 6명 값에 (6명 - 5명) 만큼씩 더한다.
 export const MEDIAN_INCOME_YEAR = 2026;
 
+// 서버가 받는 가장 큰 값 (기준중위소득 1000%)
+export const MAX_MEDIAN_PCT = 1000;
+
 const MONTHLY = { 1: 2564238, 2: 4199292, 3: 5359036, 4: 6494738, 5: 7556719, 6: 8555952 };
 
 export function monthlyMedian(size) {
