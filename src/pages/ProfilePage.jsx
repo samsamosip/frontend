@@ -4,10 +4,13 @@ import { api, ApiError, clearLogin, isLoggedIn } from '../api/client';
 import { useApi } from '../hooks/useApi';
 import { Loading, ErrorBox } from '../components/StateBox';
 import { searchReturnPath } from '../utils/searchReturnPath';
+import { MEDIAN_INCOME_YEAR, medianIncomePct, monthlyMedian } from '../utils/medianIncome';
 
 const EMPTY_FORM = {
   birthDate: '', sido: '', zipCd: '', jobCd: '', schoolCd: '', mrgSttsCd: '',
   majorName: '', sbizCd: null, annualIncome: '', housingType: '', homeowner: false,
+  // 가구 소득: 가구원 수·월 소득(만원)은 계산용이라 저장하지 않고, 계산한 기준중위소득 %만 저장한다
+  householdSize: '', householdMonthlyIncome: '', householdMedianIncomePct: '',
   interestCategories: [], isStudent: false, schoolName: '', enrollmentStatus: '',
   gradeLevel: '', gpa: '', gpaScale: '4.5', kosafIncomeBracket: '',
 };
@@ -50,6 +53,8 @@ export default function ProfilePage() {
   async function save(event) {
     event.preventDefault(); // 브라우저가 페이지를 새로고침하지 못하게 막는다
     setSaveError(null);
+    const householdPct = medianIncomePct(form.householdSize, form.householdMonthlyIncome)
+      ?? (form.householdMedianIncomePct === '' ? null : Number(form.householdMedianIncomePct));
     try {
       await api('/api/v1/me/profile', {
         method: 'PUT',
@@ -63,6 +68,8 @@ export default function ProfilePage() {
           majorName: form.majorName || null,
           sbizCd: form.sbizCd,
           annualIncome: form.annualIncome === '' ? null : Number(form.annualIncome),
+          householdMedianIncomePct: householdPct,
+          householdIncomeYear: householdPct === null ? null : MEDIAN_INCOME_YEAR,
           housingType: form.housingType || null,
           homeowner: form.homeowner,
           interestCategories: form.interestCategories,
@@ -108,6 +115,10 @@ export default function ProfilePage() {
   const fieldErrors = saveError instanceof ApiError ? saveError.errors ?? {} : {};
 
   const income = form.annualIncome === '';
+  // 새로 입력했으면 그 값으로 계산, 아니면 저장돼 있던 % 를 그대로 둔다
+  const typedPct = medianIncomePct(form.householdSize, form.householdMonthlyIncome);
+  const savedPct = form.householdMedianIncomePct === '' ? null : Number(form.householdMedianIncomePct);
+  const householdPct = typedPct ?? savedPct;
 
   return (
     <form onSubmit={save}>
@@ -209,6 +220,42 @@ export default function ProfilePage() {
           placeholder="모름으로 표시됨"
         />
         {income && <p className="hint">소득 조건이 있는 공고는 「확인 필요」로 보여요.</p>}
+
+        <FieldHead
+          label="가구 소득 (함께 사는 가족 전체)"
+          empty={householdPct === null}
+          onUnknown={() => setForm((old) => ({ ...old, householdSize: '', householdMonthlyIncome: '', householdMedianIncomePct: '' }))}
+        />
+        <div className="row-two tight">
+          <select
+            aria-label="가구원 수"
+            className={form.householdSize === '' ? 'is-unknown' : ''}
+            value={form.householdSize}
+            onChange={(e) => change('householdSize', e.target.value)}
+          >
+            <option value="">가구원 수</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n}명{n === 8 ? ' 이상' : ''}</option>)}
+          </select>
+          <input
+            aria-label="가구 월 소득"
+            className={form.householdMonthlyIncome === '' ? 'is-unknown' : ''}
+            type="number"
+            min="0"
+            inputMode="numeric"
+            value={form.householdMonthlyIncome}
+            onChange={(e) => change('householdMonthlyIncome', e.target.value)}
+            placeholder="월 소득 (만원)"
+          />
+        </div>
+        {typedPct !== null ? (
+          <p className="hint">
+            기준중위소득 <b>약 {typedPct}%</b>예요. ({MEDIAN_INCOME_YEAR}년 {form.householdSize}인 가구 기준 월 {Math.round(monthlyMedian(Number(form.householdSize)) / 10000).toLocaleString()}만 원)
+          </p>
+        ) : savedPct !== null ? (
+          <p className="hint">저장된 값: 기준중위소득 약 {savedPct}%. 바꾸려면 가구원 수와 월 소득을 다시 넣어 주세요.</p>
+        ) : (
+          <p className="hint">「기준중위소득 150% 이하」 같은 조건을 판정할 때 써요. 세금 떼기 전 금액으로 넣어 주세요.</p>
+        )}
 
         <CodeSelect label="주거 형태" name="housingType" options={codes.data.housingType} form={form} change={change} />
         <label className="check">
