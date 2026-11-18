@@ -13,7 +13,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import KakaoCallbackPage from './pages/KakaoCallbackPage';
 import CustomPolicyPage from './pages/CustomPolicyPage';
 import NotificationSettingsPage from './pages/NotificationSettingsPage';
-import Placeholder from './pages/Placeholder';
+import NotFound from './components/NotFound';
 import AccountPage from './pages/AccountPage';
 import PrivacyPage from './pages/PrivacyPage';
 import FirstVisitGate from './components/FirstVisitGate';
@@ -35,6 +35,8 @@ export default function App() {
             <Route path="/custom-policies/new" element={<CustomPolicyPage />} />
             <Route path="/custom-policies/:appId/edit" element={<CustomPolicyPage />} />
             <Route path="/account" element={<AccountPage />} />
+            {/* 없는 주소도 아래 탭이 있는 화면으로, 홈으로 나갈 길을 준다 */}
+            <Route path="*" element={<NotFound />} />
           </Route>
           {/* 아래 탭이 없는 화면: 같은 폭(휴대폰 크기) 틀만 씌운다 */}
           <Route element={<PlainLayout />}>
@@ -44,7 +46,6 @@ export default function App() {
             <Route path="/password/forgot" element={<ForgotPasswordPage />} />
             <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="*" element={<Placeholder title="페이지를 찾을 수 없어요" />} />
           </Route>
         </Route>
       </Routes>

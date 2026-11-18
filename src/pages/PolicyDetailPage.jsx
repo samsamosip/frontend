@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useApi } from '../hooks/useApi';
 import { Loading, ErrorBox } from '../components/StateBox';
+import NotFound from '../components/NotFound';
 import { VerdictBadge, computeDDay, deadlineText, opensText, shortDate } from '../components/PolicyCard';
 import { StarIcon, ClockIcon, BuildingIcon } from '../components/Icons';
 import { searchReturnPath } from '../utils/searchReturnPath';
@@ -92,6 +93,10 @@ export default function PolicyDetailPage() {
   }
 
   if (policy.loading || judged.loading) return <Loading />;
+  // 공유 링크·알림으로 들어왔는데 공고가 내려갔으면 서버 문구 대신 안내와 홈으로 가는 길
+  if (policy.error?.status === 404) {
+    return <NotFound title="찾을 수 없는 공고예요">마감됐거나 기관이 공고를 내렸을 수 있어요.</NotFound>;
+  }
   if (policy.error) return <ErrorBox error={policy.error} onRetry={policy.reload} />;
   if (judged.error) return <ErrorBox error={judged.error} onRetry={judged.reload} />;
 
