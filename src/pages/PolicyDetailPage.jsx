@@ -51,6 +51,22 @@ function mergeByLabel(conditions) {
   return [...rows.values()];
 }
 
+// 결격사유 목록처럼 긴 원문은 3줄까지만 보이고 「더 보기」로 펼친다
+function LongText({ text }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 90 || text.split('\n').length > 3;
+  return (
+    <span className="pre-line">
+      <span className={long && !open ? 'clamp-3' : undefined}>{text}</span>
+      {long && (
+        <button type="button" className="link more-btn" onClick={() => setOpen(!open)} aria-expanded={open}>
+          {open ? '접기' : '더 보기'}
+        </button>
+      )}
+    </span>
+  );
+}
+
 function fullDate(date) {
   return date ? date.slice(0, 10).replaceAll('-', '.') : '';
 }
@@ -160,7 +176,7 @@ export default function PolicyDetailPage() {
               <span className={`badge ${TRUTH[c.truth].className}`}>{TRUTH[c.truth].text}</span>
             </div>
             <div className="compare-grid">
-              <span>공고</span><span className="pre-line">{c.texts.join('\n')}</span>
+              <span>공고</span><LongText text={c.texts.join('\n')} />
               <span>내 정보</span><span className={c.myValue == null && !c.missingField ? 'muted' : undefined}>{myValueText(c)}</span>
             </div>
           </div>

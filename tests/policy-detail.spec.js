@@ -67,3 +67,21 @@ test('아직 신청 전인 공고는 카드와 상세에 시작일을 보여 준
   await page.goto('/policies/1');
   await expect(page.locator('.deadline')).toContainText(`${shown} · 12.31 마감`);
 });
+
+test('긴 원문 조건은 접어 두고 더 보기로 펼친다', async ({ page }) => {
+  const long = Array.from({ length: 9 }, (_, i) => `${i + 1}. 결격사유 항목 ${i + 1}에 해당하는 자`).join('\n');
+  await mockApi(page, async (route, url) => {
+    if (!/\/policies\/\d+\/eligibility$/.test(url.pathname)) return false;
+    await route.fulfill({ json: {
+      verdict: 'NEEDS_CHECK', verdictLabel: '확인 필요', missingFields: [], explanation: '',
+      conditions: [{ label: '참여 제한 대상', truth: 'UNKNOWN', requirement: '해당하면 제외 — 원문 확인 필요', myValue: null, missingField: null, evidence: long }],
+    } });
+    return true;
+  });
+  await page.goto('/policies/1');
+  const more = page.getByRole('button', { name: '더 보기' });
+  await expect(more).toBeVisible();
+  await expect(more).toHaveAttribute('aria-expanded', 'false');
+  await more.click();
+  await expect(page.getByRole('button', { name: '접기' })).toHaveAttribute('aria-expanded', 'true');
+});
